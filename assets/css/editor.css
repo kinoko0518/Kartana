@@ -1,0 +1,132 @@
+.editor_layout {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: var(--background);
+}
+
+.editor_header {
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    height: 50px;
+    background-color: var(--background-light);
+    border-bottom: 1px solid var(--border-color);
+    gap: 20px;
+}
+
+.back_button {
+    background: none;
+    border: none;
+    color: var(--text-information);
+    cursor: pointer;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s;
+}
+
+.back_button:hover {
+    color: var(--text-primary);
+}
+
+.menu_bar {
+    display: flex;
+    gap: 20px;
+}
+
+.menu_item {
+    color: var(--text-information);
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: background-color 0.2s, color 0.2s;
+    position: relative;
+}
+
+.menu_item:hover,
+.menu_item.active {
+    background-color: var(--background);
+    color: var(--text-primary);
+}
+
+.ribbon_container {
+    background-color: var(--background-light);
+    border-bottom: 1px solid var(--border-color);
+    padding: 10px 20px;
+    height: 40px;
+    /* Fixed height for consistency */
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.ribbon_button {
+    background-color: transparent;
+    border: 1px solid transparent;
+    color: var(--text-information);
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.ribbon_button:hover {
+    background-color: var(--background);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+/* For future dropdown implementation */
+.menu_dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: var(--background-light);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    min-width: 150px;
+    z-index: 100;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Simple visible state for now if we were to implement hover */
+/* .menu_item:hover .menu_dropdown { display: block; } */
+
+.editor_content {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    overflow: hidden;
+}
+
+.text_area_container {
+    width: 100%;
+    max-width: 900px;
+    height: 100%;
+    background-color: var(--background-light);
+    border-radius: 4px;
+    /* Simulating a page or focused area */
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+}
+
+.main_editor {
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-family: "MS Mincho", "Hiragino Mincho Pro", serif;
+    /* Mincho for literary feel */
+    font-size: 1.1rem;
+    line-height: 1.8;
+    resize: none;
+    outline: none;
+}

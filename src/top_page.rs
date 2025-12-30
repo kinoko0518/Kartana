@@ -178,6 +178,7 @@ pub fn Top() -> Element {
     let mut delete_target = use_signal(|| DeleteTarget::None);
     let mut new_series_title = use_signal(|| String::new());
     let mut new_chapter_title = use_signal(|| String::new());
+    let navigator = use_navigator();
 
     rsx! {
         div {
@@ -226,7 +227,12 @@ pub fn Top() -> Element {
                                         class: "chapter_actions",
                                         ActionIcon {
                                             icon: EDIT_ICON,
-                                            onclick: |_| {}, // Placeholder
+                                            onclick: move |_| {
+                                                navigator.push(crate::Route::Editor {
+                                                    series_title: series.read()[index].title.clone(),
+                                                    chapter_title: series.read()[index].chapters[chapter_idx].title.clone(),
+                                                });
+                                            },
                                         }
                                         ActionIcon {
                                             icon: READ_ICON,
