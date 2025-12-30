@@ -3,6 +3,8 @@ use std::path::PathBuf;
 use std::fs;
 use encoding_rs::SHIFT_JIS;
 
+use crate::top_page::works::Series;
+
 #[derive(PartialEq, Clone)]
 enum MenuTab {
     File,
@@ -22,12 +24,7 @@ pub fn Editor(series_title: String, chapter_title: String) -> Element {
     let file_path = {
         let s_title = series_title.clone();
         let c_title = chapter_title.clone();
-        move || {
-            let mut path = PathBuf::from("data");
-            path.push(&s_title);
-            path.push(format!("{}.txt", c_title));
-            path
-        }
+        move || Series::series_dir(&s_title).join(format!("{}.txt", c_title))
     };
 
     // Load content on mount

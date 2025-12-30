@@ -1,22 +1,9 @@
+pub mod works;
+
 use dioxus::prelude::*;
+use works::{ActionIcon, Chapter, DrawSeries, Series, DELETE_ICON, EDIT_ICON, READ_ICON};
 
-const FAVOURITE_ICON: Asset = asset!("assets/icons/bookmark.svg");
-const EDIT_ICON: Asset = asset!("assets/icons/edit.svg");
-const READ_ICON: Asset = asset!("assets/icons/read.svg");
-const DELETE_ICON: Asset = asset!("assets/icons/delete.svg");
 
-#[derive(PartialEq, Eq, Clone)]
-struct Chapter {
-    title: String,
-    created_at: String,
-}
-
-#[derive(PartialEq, Eq, Clone)]
-struct Series {
-    title: String,
-    is_favourite: bool,
-    chapters: Vec<Chapter>,
-}
 
 #[derive(Clone, PartialEq)]
 enum DeleteTarget {
@@ -33,27 +20,7 @@ enum PanelState {
     CreateChapter(usize),
 }
 
-#[component]
-fn ActionIcon(
-    icon: Asset,
-    onclick: EventHandler<MouseEvent>,
-    class: Option<String>,
-    style: Option<String>,
-) -> Element {
-    let extra_class = class.unwrap_or_default();
-    let extra_style = style.unwrap_or_default();
-    
-    rsx! {
-        div {
-            class: "action_icon {extra_class}",
-            style: "mask-image: url({icon}); -webkit-mask-image: url({icon}); {extra_style}",
-            onclick: move |evt| {
-                evt.stop_propagation();
-                onclick.call(evt);
-            },
-        }
-    }
-}
+
 
 #[component]
 fn CreateForm(
@@ -118,61 +85,11 @@ fn ConfirmationModal(
     }
 }
 
-#[component]
-fn DrawSeries(
-    series: Series,
-    on_favorite_click: EventHandler<MouseEvent>,
-    on_click: EventHandler<MouseEvent>,
-    on_delete_click: EventHandler<MouseEvent>,
-) -> Element {
-    let fav_bg_color = if series.is_favourite { "#ffa0b0ff" } else { "white" };
 
-    rsx! {
-        div {
-            class: "series_container",
-            onclick: move |evt| on_click.call(evt),
-            p {
-                class: "series_title",
-                "{series.title}"
-            }
-            div {
-                class: "series_actions",
-                ActionIcon {
-                    icon: FAVOURITE_ICON,
-                    style: "background-color: {fav_bg_color};",
-                    onclick: move |evt| on_favorite_click.call(evt),
-                }
-                ActionIcon {
-                    icon: DELETE_ICON,
-                    class: "delete",
-                    onclick: move |evt| on_delete_click.call(evt),
-                }
-            }
-        }
-    }
-}
 
 #[component]
 pub fn Top() -> Element {
-    let mut series: Signal<Vec<Series>> = use_signal(|| {
-        vec![
-            Series {
-                title: "同志茜は高校生活を革命するそうです".into(),
-                is_favourite: true,
-                chapters: vec![
-                    Chapter { title: "第1話".into(), created_at: "2024-01-01".into() },
-                    Chapter { title: "第2話".into(), created_at: "2024-01-08".into() },
-                ],
-            },
-            Series {
-                title: "不欠望月、孰蟾宮主人乎？".into(),
-                is_favourite: true,
-                chapters: vec![
-                     Chapter { title: "序章".into(), created_at: "2024-02-01".into() },
-                ],
-            }
-        ]
-    });
+    let mut series: Signal<Vec<Series>> = use_signal(|| Series::load_series());
 
     let mut panel_state = use_signal(|| PanelState::None);
     let mut delete_target = use_signal(|| DeleteTarget::None);
@@ -191,6 +108,7 @@ pub fn Top() -> Element {
                         on_favorite_click: move |_| {
                             let mut s = series.write();
                             s[i].is_favourite = !s[i].is_favourite;
+                            let _ = s[i].save_series();
                         },
                         on_click: move |_| {
                             panel_state.set(PanelState::Selected(i));
@@ -269,11 +187,13 @@ pub fn Top() -> Element {
                             oninput: move |val: String| new_series_title.set(val),
                             oncreate: move |_| {
                                 if !new_series_title().trim().is_empty() {
-                                    series.write().push(Series {
+                                    let new_series = Series {
                                         title: new_series_title(),
                                         is_favourite: false,
                                         chapters: vec![],
-                                    });
+                                    };
+                                    let _ = new_series.save_series();
+                                    series.write().push(new_series);
                                     let new_index = series.read().len() - 1;
                                     panel_state.set(PanelState::Selected(new_index));
                                 }
@@ -293,6 +213,7 @@ pub fn Top() -> Element {
                                         title: new_chapter_title(),
                                         created_at: "2025-01-01".into(),
                                     });
+                                    let _ = series.read()[index].save_series();
                                     panel_state.set(PanelState::Selected(index));
                                 }
                             },
@@ -305,12 +226,16 @@ pub fn Top() -> Element {
                 }
             }
         }
-        
+
         match delete_target() {
             DeleteTarget::Series(i) => rsx! {
                 ConfirmationModal {
                     message: format!("本当に「{}」を削除しますか？", series.read()[i].title),
                     onconfirm: move |_| {
+                        {
+                            let s = series.read();
+                            let _ = s[i].delete_series();
+                        }
                         series.write().remove(i);
                         match panel_state() {
                             PanelState::Selected(selected_index) | PanelState::CreateChapter(selected_index) => {
@@ -338,6 +263,7 @@ pub fn Top() -> Element {
                     message: format!("本当に「{}」を削除しますか？", series.read()[series_idx].chapters[chapter_idx].title),
                     onconfirm: move |_| {
                         series.write()[series_idx].chapters.remove(chapter_idx);
+                        let _ = series.read()[series_idx].save_series();
                         delete_target.set(DeleteTarget::None);
                     },
                     oncancel: move |_| delete_target.set(DeleteTarget::None),
