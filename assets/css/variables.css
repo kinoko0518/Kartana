@@ -1,0 +1,12 @@
+:root {
+    --background: #29252c;
+    --border-color: #ffffff0f;
+    --background-light: #2c2830;
+    --text-information: #c4c4c4;
+    --text-primary: #ffffff;
+    --danger-color: #ff4d4d;
+    --card-width: 300px;
+    --card-height: 180px;
+    --card-padding: 1.5rem;
+    --card-radius: 1.5rem;
+}

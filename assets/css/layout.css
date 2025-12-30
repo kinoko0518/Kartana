@@ -1,0 +1,14 @@
+.top_layout {
+    display: flex;
+    height: 100vh;
+    box-sizing: border-box;
+}
+
+.series_grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px;
+    flex-grow: 1;
+    align-content: flex-start;
+}

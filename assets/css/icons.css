@@ -1,0 +1,13 @@
+.action_icon {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    background-color: var(--text-information);
+    mask-size: cover;
+    -webkit-mask-size: cover;
+    transition: background-color 0.3s ease;
+}
+
+.action_icon.delete:hover {
+    background-color: var(--danger-color);
+}
