@@ -1,0 +1,46 @@
+    Checking kartana v0.1.0 (C:\Projects\PersonalProjects\kartana)
+error[E0425]: cannot find function `use_eval` in this scope
+  --> src\editor_page.rs:68:20
+   |
+68 |     let mut eval = use_eval();
+   |                    ^^^^^^^^ not found in this scope
+
+error[E0308]: mismatched types
+   --> src\editor_page.rs:103:19
+    |
+103 |         if key == "Tab" && !modifiers.shift() && !modifiers.ctrl() && !modifiers.alt() && !modifiers.meta() {
+    |            ---    ^^^^^ expected `Key`, found `&str`
+    |            |
+    |            expected because this is `dioxus::events::Key`
+
+error[E0308]: mismatched types
+   --> src\editor_page.rs:107:26
+    |
+107 |         } else if key == "Enter" && modifiers.ctrl() {
+    |                   ---    ^^^^^^^ expected `Key`, found `&str`
+    |                   |
+    |                   expected because this is `dioxus::events::Key`
+
+error[E0308]: mismatched types
+   --> src\editor_page.rs:111:26
+    |
+111 |         } else if key == "<" && modifiers.ctrl() {
+    |                   ---    ^^^ expected `Key`, found `&str`
+    |                   |
+    |                   expected because this is `dioxus::events::Key`
+
+error[E0425]: cannot find function `tab_class` in this scope
+   --> src\editor_page.rs:118:5
+    |
+118 | /     rsx! {
+119 | |         div {
+120 | |             class: "editor_layout",
+...   |
+198 | |     }
+    | |_____^ not found in this scope
+    |
+    = note: this error originates in the macro `rsx` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+Some errors have detailed explanations: E0308, E0425.
+For more information about an error, try `rustc --explain E0308`.
+error: could not compile `kartana` (bin "kartana") due to 5 previous errors

@@ -8,6 +8,7 @@ edition = "2021"
 
 [dependencies]
 dioxus = { version = "0.6.0", features = ["router", "fullstack"] }
+encoding_rs = "0.8.35"
 serde = "1.0.228"
 toml = "0.9.10"
 

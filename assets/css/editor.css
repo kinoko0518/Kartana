@@ -1,7 +1,19 @@
+@font-face {
+    font-family: 'HaranoAjiMincho';
+    src: url('/assets/fonts/HaranoAjiMincho-Regular.otf') format('opentype');
+}
+
 .editor_layout {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 999;
+    margin: 0;
+    padding: 0;
     display: flex;
     flex-direction: column;
-    height: 100vh;
     background-color: var(--background);
 }
 
@@ -108,11 +120,6 @@
     width: 100%;
     max-width: 900px;
     height: 100%;
-    background-color: var(--background-light);
-    border-radius: 4px;
-    /* Simulating a page or focused area */
-    padding: 20px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
     display: flex;
     flex-direction: column;
 }
@@ -122,11 +129,35 @@
     height: 100%;
     background-color: transparent;
     border: none;
+    background-color: transparent;
+    border: none;
     color: var(--text-primary);
-    font-family: "MS Mincho", "Hiragino Mincho Pro", serif;
-    /* Mincho for literary feel */
+    font-family: 'HaranoAjiMincho', serif;
     font-size: 1.1rem;
     line-height: 1.8;
     resize: none;
     outline: none;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #ffffff05;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: #ffffff1f;
+}
+
+::-webkit-scrollbar-corner {
+    background-color: transparent;
 }
