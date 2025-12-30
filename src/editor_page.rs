@@ -78,20 +78,19 @@ pub fn Editor(series_title: String, chapter_title: String) -> Element {
         let key = evt.key();
         let modifiers = evt.modifiers();
         
-        // Helper to insert text or wrap selection via JS
-        let insert_text_js = |text: &str, select_mode: &str| {
+        // Helper to insert text using execCommand for Undo support
+        let insert_text_js = |text: &str| {
             format!(r#"
                 const textarea = document.getElementById('main_editor');
                 if (textarea) {{
                     textarea.focus();
-                    textarea.setRangeText("{}", textarea.selectionStart, textarea.selectionEnd, "{}");
-                    textarea.dispatchEvent(new Event('input', {{ bubbles: true }}));
+                    // execCommand is deprecated but is the only reliable way to trigger undoable text insertion
+                    document.execCommand('insertText', false, "{}");
                 }}
-            "#, text.replace("\"", "\\\"").replace("\n", "\\n"), select_mode)
+            "#, text.replace("\"", "\\\"").replace("\n", "\\n"))
         };
 
         // Wrap selection: [prefix]selection[suffix]
-        // Modified to support keeping original text: text + prefix + text + suffix
         let wrap_selection_js = |prefix: &str, suffix: &str, keep_original: bool| {
             format!(r#"
                 const textarea = document.getElementById('main_editor');
@@ -100,9 +99,14 @@ pub fn Editor(series_title: String, chapter_title: String) -> Element {
                     const start = textarea.selectionStart;
                     const end = textarea.selectionEnd;
                     const text = textarea.value.substring(start, end);
-                    const newText = {} + "{}" + text + "{}";
-                    textarea.setRangeText(newText, start, end, "select");
-                    textarea.dispatchEvent(new Event('input', {{ bubbles: true }}));
+                    // Construct replacement manually because execCommand inserts at cursor/swaps selection
+                    const replacement = {} + "{}" + text + "{}";
+                    document.execCommand('insertText', false, replacement);
+                    
+                    // Restore selection to cover the whole new text (mimicking setRangeText "select" mode)
+                    // New length is (maybe text) + prefix + text + suffix
+                    // Cursor is currently at the end
+                    textarea.setSelectionRange(start, start + replacement.length);
                 }}
             "#, if keep_original { "text" } else { "\"\"" }, prefix, suffix)
         };
@@ -116,14 +120,13 @@ pub fn Editor(series_title: String, chapter_title: String) -> Element {
                     const start = textarea.selectionStart;
                     const end = textarea.selectionEnd;
                     const text = textarea.value.substring(start, end);
-                    const newText = "|" + text + "《》";
-                    textarea.setRangeText(newText, start, end, "end");
+                    const replacement = "|" + text + "《》";
+                    document.execCommand('insertText', false, replacement);
+                    
                     // Move cursor between 《 and 》. 
-                    // |(1) + text + 《(1) = text.length + 2
-                    // We want cursor after 《.
+                    // Current position is at the very end (after 》)
                     const cursor = textarea.selectionEnd - 1; 
                     textarea.setSelectionRange(cursor, cursor);
-                    textarea.dispatchEvent(new Event('input', {{ bubbles: true }}));
                 }}
             "#)
         };
@@ -134,23 +137,20 @@ pub fn Editor(series_title: String, chapter_title: String) -> Element {
         if key_str == "Tab" && !modifiers.shift() && !modifiers.ctrl() && !modifiers.alt() && !modifiers.meta() {
             // Tab -> ［＃３字下げ］
             evt.prevent_default();
-            let script = insert_text_js("［＃３字下げ］", "end");
+            let script = insert_text_js("［＃３字下げ］");
             let _ = document::eval(&script);
         } else if key_str == "Enter" && modifiers.ctrl() {
             // Ctrl+Enter -> ［＃改頁］
             evt.prevent_default();
-            let script = insert_text_js("\n［＃改頁］", "end");
+            let script = insert_text_js("\n［＃改頁］");
             let _ = document::eval(&script);
         } else if (key_str == "<" || key_str == ",") && modifiers.ctrl() && modifiers.shift() {
-            // Ctrl+Shift+< (or Ctrl+Shift+,) -> 文字列［＃「文字列」に傍点］
-            // On JIS/US keyboards, < is Shift+, so this catches explicit Shift usage.
+            // Ctrl+Shift+< (or Ctrl+Shift+,) -> ［＃「文字列」に傍点］
             evt.prevent_default();
             let script = wrap_selection_js("［＃「", "」に傍点］", true);
             let _ = document::eval(&script);
         } else if (key_str == "<" || key_str == ",") && modifiers.ctrl() {
             // Ctrl+< (if specific key) or Ctrl+, -> |文字列《（ここにカーソル位置を移動）》
-            // Catches Ctrl+, (Ruby) when Shift is NOT pressed (so key is ",").
-            // Also catches Ctrl+< if user somehow produces < without shift (unlikely on standard kbd but possible).
             evt.prevent_default();
             let script = ruby_wrap_js();
             let _ = document::eval(&script);
