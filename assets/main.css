@@ -1,8 +1,13 @@
 :root {
     --background: #29252c;
+    --border-color: #ffffff0f;
     --background-light: #2c2830;
     --text-information: #c4c4c4;
     --text-primary: #ffffff;
+    --card-width: 300px;
+    --card-height: 180px;
+    --card-padding: 1.5rem;
+    --card-radius: 1.5rem;
 }
 
 body {
@@ -29,17 +34,39 @@ body {
 
 .series_container {
     background-color: var(--background-light);
-    border-radius: 1.5em;
-    padding: 1.5em;
+    border-radius: var(--card-radius);
+    padding: var(--card-padding);
     display: flex;
+    box-sizing: border-box;
     flex-direction: column;
     justify-content: space-between;
     align-items: flex-start;
-    width: 300px;
-    height: 180px;
-    border: 1px solid #ffffff0f;
+    width: var(--card-width);
+    height: var(--card-height);
+    border: 1px solid var(--border-color);
     transition: transform 0.2s ease;
 }
+
+.create_card {
+    width: var(--card-width);
+    height: var(--card-height);
+    border: 1px dashed var(--border-color);
+    border-radius: var(--card-radius);
+    padding: var(--card-padding);
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 2em;
+    color: var(--text-information);
+    box-sizing: border-box;
+}
+
+.create_card:hover {
+    background-color: var(--background-light);
+    border-color: var(--text-primary);
+    color: var(--text-primary);
+}
+
 
 .series_container:hover {
     transform: translateY(-5px);
@@ -70,7 +97,7 @@ body {
 
 .chapter_list_panel {
     width: 300px;
-    border-left: 1px solid #ffffff0f;
+    border-left: 1px solid var(--border-color);
     padding: 20px;
     background-color: var(--background);
 }
@@ -88,7 +115,7 @@ body {
 
 .chapter_list_panel li {
     padding: 10px;
-    border-bottom: 1px solid #ffffff0f;
+    border-bottom: 1px solid var(--border-color);
     color: var(--text-information);
     display: flex;
     justify-content: space-between;
@@ -98,4 +125,60 @@ body {
 .chapter_actions {
     display: flex;
     gap: 10px;
+}
+
+.create_form input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: var(--background-light);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.form_actions {
+    display: flex;
+    gap: 10px;
+}
+
+.form_actions button {
+    padding: 8px 16px;
+    background-color: var(--background-light);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.form_actions button:hover {
+    background-color: var(--background-light);
+}
+
+.add_chapter_button {
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-information);
+    cursor: pointer;
+    font-size: 1.2rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.add_chapter_button:hover {
+    color: var(--text-primary);
+    border-color: var(--text-primary);
+    background-color: var(--background-light);
+}
+
+.add_chapter_container {
+    display: flex;
+    justify-content: center;
+    padding-top: 20px;
 }
