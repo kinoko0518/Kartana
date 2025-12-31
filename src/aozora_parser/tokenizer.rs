@@ -1,4 +1,4 @@
-mod command;
+pub mod command;
 
 use itertools::Itertools;
 
@@ -36,7 +36,7 @@ fn is_other(c: char) -> bool {
 #[derive(Debug, Clone, PartialEq)]
 pub enum TextKind {
     Hiragana,
-    Katana,
+    Katakana,
     Kanji,
     Other,
 }
@@ -216,7 +216,7 @@ pub fn parse_aozora(text: String) -> Result<Vec<AozoraToken>, TokenizeError> {
                 }
                 tokens.push(AozoraToken::Text(TextToken {
                     content: buffer,
-                    kind: TextKind::Katana,
+                    kind: TextKind::Katakana,
                 }));
             }
             _ => {
@@ -282,7 +282,7 @@ mod tests {
         match &tokens[2] {
             AozoraToken::Text(t) => {
                 assert_eq!(t.content, "カタカナ");
-                assert_eq!(t.kind, TextKind::Katana);
+                assert_eq!(t.kind, TextKind::Katakana);
             }
             _ => panic!("Expected Katana"),
         }

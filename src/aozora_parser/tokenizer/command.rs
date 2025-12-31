@@ -21,7 +21,8 @@ pub enum MidashiType {
 /// 傍点を表します．詳細は以下のURLを参照してください．
 ///
 /// https://www.aozora.gr.jp/annotation/emphasis.html#boten_chuki
-enum Bouten {
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum Bouten {
     Sirogoma,
     BlackCircle,
     WhiteCircle,
@@ -35,7 +36,8 @@ enum Bouten {
 /// 傍線を表します．詳細は以下のURLを参照してください．
 ///
 /// https://www.aozora.gr.jp/annotation/emphasis.html#bosen_chuki
-enum Bousen {
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum Bousen {
     Bousen,
     Double,
     Chain,
@@ -73,12 +75,14 @@ pub struct Midashi {
 /// 地付きの詳細は以下のURLを参照してください．
 ///
 /// https://www.aozora.gr.jp/annotation/layout_2.html#chitsuki
-struct Alignment {
-    is_upper: bool,
-    space: usize,
+#[derive(Debug, PartialEq, Clone)]
+pub struct Alignment {
+    pub is_upper: bool,
+    pub space: usize,
 }
 
-enum CommandBegin {
+#[derive(Debug, PartialEq, Clone)]
+pub enum CommandBegin {
     // Other
     Midashi(Midashi),
     Alignment(Alignment),
@@ -104,7 +108,8 @@ enum CommandBegin {
     Jitsume(usize),
 }
 
-enum CommandEnd {
+#[derive(Debug, PartialEq, Clone)]
+pub enum CommandEnd {
     // Other
     Midashi(Midashi),
     Alignment,
@@ -121,7 +126,8 @@ enum CommandEnd {
     Jitsume,
 }
 
-enum SingleCommand {
+#[derive(Debug, PartialEq, Clone)]
+pub enum SingleCommand {
     // Other
     Midashi((Midashi, String)),
     Alignment(Alignment),
@@ -139,7 +145,8 @@ enum SingleCommand {
     Italic(String),
 }
 
-enum Command {
+#[derive(Debug, PartialEq, Clone)]
+pub enum Command {
     CommandBegin(CommandBegin),
     SingleCommand(SingleCommand),
     CommandEnd(CommandEnd),
