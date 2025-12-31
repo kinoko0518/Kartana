@@ -38,6 +38,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "aozora_parser"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "encoding_rs",
+ "itertools",
+ "regex",
+ "uuid",
+ "zip",
+]
+
+[[package]]
 name = "arbitrary"
 version = "1.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2506,6 +2518,7 @@ dependencies = [
 name = "kartana"
 version = "0.1.0"
 dependencies = [
+ "aozora_parser",
  "chrono",
  "dioxus",
  "encoding_rs",

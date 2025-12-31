@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-use crate::aozora_parser::tokenizer::{self, AozoraToken, CommandToken, TextToken};
+use crate::tokenizer::{self, AozoraToken, CommandToken, TextToken};
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct DecoratedText {
@@ -17,7 +17,7 @@ pub enum SpecialCharacter {
 #[derive(Debug, PartialEq, Clone)]
 pub enum ParsedItem {
     Text(DecoratedText),
-    Command(crate::aozora_parser::tokenizer::command::Command),
+    Command(crate::tokenizer::command::Command),
     Newline,
     SpecialCharacter(SpecialCharacter),
 }
@@ -220,8 +220,8 @@ pub fn parse(tokens: Vec<AozoraToken>) -> Result<AozoraDocument, ParseError> {
                 if let Some(cmd) = tokenizer::command::parse_command(c.clone()) {
                     // Check for SingleCommand::Midashi referencing previous text
                     let mut merged = false;
-                    if let crate::aozora_parser::tokenizer::command::Command::SingleCommand(
-                        crate::aozora_parser::tokenizer::command::SingleCommand::Midashi((m, content))
+                    if let crate::tokenizer::command::Command::SingleCommand(
+                        crate::tokenizer::command::SingleCommand::Midashi((m, content))
                     ) = &cmd {
                         if let Some(ParsedItem::Text(dt)) = parsed_items.last() {
                             if dt.text == *content {
@@ -229,14 +229,14 @@ pub fn parse(tokens: Vec<AozoraToken>) -> Result<AozoraDocument, ParseError> {
                                 let text_item = parsed_items.pop().unwrap(); // Remove pure text
                                 
                                 parsed_items.push(ParsedItem::Command(
-                                    crate::aozora_parser::tokenizer::command::Command::CommandBegin(
-                                        crate::aozora_parser::tokenizer::command::CommandBegin::Midashi(m.clone())
+                                    crate::tokenizer::command::Command::CommandBegin(
+                                        crate::tokenizer::command::CommandBegin::Midashi(m.clone())
                                     )
                                 ));
                                 parsed_items.push(text_item);
                                 parsed_items.push(ParsedItem::Command(
-                                    crate::aozora_parser::tokenizer::command::Command::CommandEnd(
-                                        crate::aozora_parser::tokenizer::command::CommandEnd::Midashi(m.clone())
+                                    crate::tokenizer::command::Command::CommandEnd(
+                                        crate::tokenizer::command::CommandEnd::Midashi(m.clone())
                                     )
                                 ));
                                 merged = true;

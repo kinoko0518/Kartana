@@ -1,5 +1,5 @@
-use crate::aozora_parser::parser::ParsedItem;
-use crate::aozora_parser::tokenizer::command::{Command, CommandBegin, CommandEnd};
+use crate::parser::ParsedItem;
+use crate::tokenizer::command::{Command, CommandBegin, CommandEnd};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum BlockElement {
@@ -77,11 +77,11 @@ pub fn parse_blocks(items: Vec<ParsedItem>) -> Result<AozoraBlock, BlockParseErr
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::aozora_parser::parser::{DecoratedText, SpecialCharacter};
-    use crate::aozora_parser::tokenizer::command::{
+    use crate::parser::{DecoratedText, SpecialCharacter};
+    use crate::tokenizer::command::{
         Alignment, Midashi, MidashiSize, MidashiType, SingleCommand,
     };
-    use crate::aozora_parser::tokenizer::{AozoraToken, TextToken, TextKind};
+    use crate::tokenizer::{AozoraToken, TextToken, TextKind};
 
     fn make_text(s: &str) -> ParsedItem {
         ParsedItem::Text(DecoratedText {

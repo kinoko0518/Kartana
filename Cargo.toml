@@ -1,12 +1,21 @@
+[workspace]
+members = ["crates/aozora_parser"]
+resolver = "2"
+
+[workspace.package]
+edition = "2024"
+authors = ["6osciola <99010199+kinoko0518@users.noreply.github.com>"]
+
 [package]
 name = "kartana"
 version = "0.1.0"
-authors = ["6osciola <99010199+kinoko0518@users.noreply.github.com>"]
-edition = "2024"
+authors.workspace = true
+edition.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+aozora_parser = { path = "crates/aozora_parser" }
 chrono = "0.4.42"
 dioxus = { version = "0.6.0", features = ["router", "fullstack"] }
 encoding_rs = "0.8.35"

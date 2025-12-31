@@ -1,6 +1,6 @@
-use crate::aozora_parser::block_parser::{AozoraBlock, BlockElement};
-use crate::aozora_parser::parser::{DecoratedText, ParsedItem, SpecialCharacter};
-use crate::aozora_parser::tokenizer::command::{
+use crate::block_parser::{AozoraBlock, BlockElement};
+use crate::parser::{DecoratedText, ParsedItem, SpecialCharacter};
+use crate::tokenizer::command::{
     Command, CommandBegin, Midashi, MidashiSize, MidashiType, SingleCommand,
 };
 use std::fmt::Write;
@@ -363,8 +363,8 @@ fn escape_html(s: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::aozora_parser::block_parser::parse_blocks;
-    use crate::aozora_parser::tokenizer::{self, AozoraToken, TextKind, TextToken};
+    use crate::block_parser::parse_blocks;
+    use crate::tokenizer::{self, AozoraToken, TextKind, TextToken};
 
     #[test]
     fn test_simple_html_generation() {
@@ -372,7 +372,7 @@ mod tests {
             text: "Hello".to_string(),
             ruby: None,
         })];
-        let root = crate::aozora_parser::block_parser::parse_blocks(items).unwrap();
+        let root = crate::block_parser::parse_blocks(items).unwrap();
         let (html, _) = XhtmlGenerator::generate(&root, "Test");
         assert!(html.contains("Hello"));
     }
@@ -381,10 +381,10 @@ mod tests {
 #[cfg(test)]
 mod integration_tests {
     use super::*;
-    use crate::aozora_parser::block_parser::parse_blocks;
-    use crate::aozora_parser::parser::parse;
-    use crate::aozora_parser::tokenizer::command::*;
-    use crate::aozora_parser::tokenizer::{AozoraToken, parse_aozora};
+    use crate::block_parser::parse_blocks;
+    use crate::parser::parse;
+    use crate::tokenizer::command::*;
+    use crate::tokenizer::{AozoraToken, parse_aozora};
     use encoding_rs::SHIFT_JIS;
     use std::fs;
     use std::path::PathBuf;
@@ -392,7 +392,7 @@ mod integration_tests {
     #[test]
     fn test_ningen_shikkaku() {
         let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        path.push("src/aozora_parser/parser_test_data/桜桃.txt");
+        path.push("src/parser_test_data/桜桃.txt");
 
         // Read bytes
         let bytes = fs::read(&path).expect("Could not find test file");
@@ -416,7 +416,7 @@ mod integration_tests {
     #[test]
     fn debug_tokens() {
         let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        path.push("src/aozora_parser/parser_test_data/桜桃.txt");
+        path.push("src/parser_test_data/桜桃.txt");
         let bytes = fs::read(&path).expect("Could not find test file");
         let (cow, _, _) = SHIFT_JIS.decode(&bytes);
         let text = cow.into_owned();

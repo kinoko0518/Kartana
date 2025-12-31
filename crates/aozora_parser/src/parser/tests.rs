@@ -1,5 +1,5 @@
 use super::*;
-use crate::aozora_parser::tokenizer::{parse_aozora, TextKind, TextToken, AozoraToken};
+use crate::tokenizer::{parse_aozora, TextKind, TextToken, AozoraToken};
 use std::fs;
 use std::path::PathBuf;
 use encoding_rs::SHIFT_JIS;
@@ -18,7 +18,7 @@ fn with_metadata(tokens: Vec<AozoraToken>) -> Vec<AozoraToken> {
 #[test]
 fn debug_hashigaki() {
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    path.push("src/aozora_parser/parser_test_data/桜桃.txt");
+    path.push("src/parser_test_data/桜桃.txt");
     let bytes = fs::read(&path).expect("Could not find test file");
     let (cow, _, _) = SHIFT_JIS.decode(&bytes);
     let text = cow.into_owned();
@@ -175,7 +175,7 @@ fn test_comment_block_skipping() {
 #[test]
 fn debug_outou_block_parse() {
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    path.push("src/aozora_parser/parser_test_data/桜桃.txt");
+    path.push("src/parser_test_data/桜桃.txt");
     let bytes = fs::read(&path).expect("Could not find test file");
     let (cow, _, _) = SHIFT_JIS.decode(&bytes);
     let text = cow.into_owned();
@@ -186,10 +186,10 @@ fn debug_outou_block_parse() {
     for (i, item) in doc.items.iter().enumerate() {
         if let ParsedItem::Command(cmd) = item {
             match cmd {
-                crate::aozora_parser::tokenizer::command::Command::CommandBegin(b) => {
+                crate::tokenizer::command::Command::CommandBegin(b) => {
                     println!("Item {}: CommandBegin({:?})", i, b);
                 }
-                crate::aozora_parser::tokenizer::command::Command::CommandEnd(e) => {
+                crate::tokenizer::command::Command::CommandEnd(e) => {
                     println!("Item {}: CommandEnd({:?})", i, e);
                 }
                 _ => {}
@@ -197,7 +197,7 @@ fn debug_outou_block_parse() {
         }
     }
     
-    let result = crate::aozora_parser::block_parser::parse_blocks(doc.items);
+    let result = crate::block_parser::parse_blocks(doc.items);
     match result {
         Ok(_) => println!("Block parsing succeeded"),
         Err(e) => {

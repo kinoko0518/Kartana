@@ -1,5 +1,5 @@
-use crate::aozora_parser::block_parser::AozoraBlock;
-use crate::aozora_parser::xhtml_generator::{XhtmlGenerator, TocEntry};
+use crate::block_parser::AozoraBlock;
+use crate::xhtml_generator::{XhtmlGenerator, TocEntry};
 use std::fmt::Write as FmtWrite;
 use std::fs::File;
 use std::io::Write;
@@ -136,9 +136,9 @@ impl EpubGenerator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::aozora_parser::block_parser::parse_blocks;
-    use crate::aozora_parser::tokenizer::parse_aozora;
-    use crate::aozora_parser::parser::parse;
+    use crate::block_parser::parse_blocks;
+    use crate::tokenizer::parse_aozora;
+    use crate::parser::parse;
     use std::fs;
     use std::path::PathBuf;
     use encoding_rs::SHIFT_JIS;
@@ -146,7 +146,7 @@ mod tests {
     #[test]
     fn test_generate_epub_outou() {
         let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        path.push("src/aozora_parser/parser_test_data/桜桃.txt");
+        path.push("src/parser_test_data/桜桃.txt");
         let bytes = fs::read(&path).expect("Could not find test file");
         let (cow, _, _) = SHIFT_JIS.decode(&bytes);
         let text = cow.into_owned();
@@ -172,10 +172,10 @@ mod tests {
     #[test]
     fn generate_outou_test_epub() {
         let mut source_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        source_path.push("src/aozora_parser/parser_test_data/桜桃.txt");
+        source_path.push("src/parser_test_data/桜桃.txt");
         
         let mut output_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        output_path.push("src/aozora_parser/parser_test_data/桜桃_TEST.epub");
+        output_path.push("src/parser_test_data/桜桃_TEST.epub");
 
         let bytes = fs::read(&source_path).expect("Could not find test file");
         let (cow, _, _) = SHIFT_JIS.decode(&bytes);

@@ -1,6 +1,6 @@
 use regex::Regex;
 
-use crate::aozora_parser::tokenizer::CommandToken;
+use crate::tokenizer::CommandToken;
 
 const ZERO_TO_NINE: [char; 10] = ['０', '１', '２', '３', '４', '５', '６', '７', '８', '９'];
 
@@ -262,7 +262,7 @@ pub fn parse_command(commands: CommandToken) -> Option<Command> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::aozora_parser::tokenizer::CommandToken;
+    use crate::tokenizer::CommandToken;
 
     #[test]
     fn test_midashi_ref() {
