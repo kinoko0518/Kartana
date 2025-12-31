@@ -1,9 +1,10 @@
-mod top_page;
+mod aozora_parser;
 mod editor_page;
+mod top_page;
 
 use dioxus::prelude::*;
-use top_page::Top;
 use editor_page::Editor;
+use top_page::Top;
 
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
