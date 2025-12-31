@@ -1,5 +1,6 @@
 use crate::aozora_parser::block_parser::AozoraBlock;
-use crate::aozora_parser::xhtml_generator::XhtmlGenerator;
+use crate::aozora_parser::xhtml_generator::{XhtmlGenerator, TocEntry};
+use std::fmt::Write as FmtWrite;
 use std::fs::File;
 use std::io::{Write, Cursor};
 use std::path::Path;
@@ -40,6 +41,9 @@ impl EpubGenerator {
             .compression_method(zip::CompressionMethod::Deflated)
             .unix_permissions(0o755);
 
+        // Generate content first to get TOC
+        let (body_content, toc_entries) = XhtmlGenerator::generate(&self.blocks);
+
         // META-INF/container.xml
         zip.start_file("META-INF/container.xml", options_deflate)?;
         zip.write_all(self.generate_container().as_bytes())?;
@@ -50,23 +54,17 @@ impl EpubGenerator {
 
         // item/nav.xhtml
         zip.start_file("item/nav.xhtml", options_deflate)?;
-        zip.write_all(self.generate_nav().as_bytes())?;
+        zip.write_all(self.generate_nav(&toc_entries).as_bytes())?;
         
         // item/style/aozora.css (Basic vertical writing CSS)
         zip.add_directory("item/style", options_deflate)?;
         zip.start_file("item/style/aozora.css", options_deflate)?;
         zip.write_all(self.generate_css().as_bytes())?;
 
-        // item/xhtml/content.xhtml (Single file for now for simplicity, splitting can be added later)
+        // item/xhtml/content.xhtml
         zip.add_directory("item/xhtml", options_deflate)?;
         zip.start_file("item/xhtml/content.xhtml", options_deflate)?;
-        let body_content = XhtmlGenerator::generate(&self.blocks); 
-        // Note: XhtmlGenerator generates full HTML with <head>. 
-        // We might want to strip it or modify XhtmlGenerator to return body only.
-        // Or just use it as is if it fits the requirements. 
-        // The requirement said "imitate parser_test_data/人間失格".
-        // The sample has multiple XHTML files. 
-        // For minimal MPV, we output one file content.xhtml.
+        
         zip.write_all(body_content.as_bytes())?;
 
         zip.finish()?;
@@ -109,7 +107,31 @@ impl EpubGenerator {
         )
     }
 
-    fn generate_nav(&self) -> String {
+    fn generate_nav(&self, toc: &[TocEntry]) -> String {
+        let mut nav_body = String::new();
+        // Simple ol/li generation. 
+        // For nested levels, it's more complex, but standard TOC is often flat or handled by nesting ol.
+        // Let's implement flat first or simple nesting?
+        // Let's stick to flat list if simple, or respect indentation.
+        // For Aozora midashi levels, we can just put them in order.
+        
+        nav_body.push_str("<ol>\n");
+        // Always include "Begin Reading" / Cover? Or just start with headings?
+        // If there are no headings, at least link to content.
+        if toc.is_empty() {
+             nav_body.push_str("<li><a href=\"xhtml/content.xhtml\">本文</a></li>\n");
+        } else {
+            for entry in toc {
+                // Using recursive or stack logic for proper nesting is best, but for MVP:
+                // Just use flat list or styling?
+                // EPUB TOC usually requires proper nesting for levels.
+                // Let's just output flattened for now as indentation might be handled by CSS or reader ignored.
+                // Actually, let's try to just output all as li.
+                writeln!(nav_body, "<li><a href=\"xhtml/content.xhtml#{}\">{}</a></li>", entry.id, entry.text).unwrap();
+            }
+        }
+        nav_body.push_str("</ol>\n");
+
         format!(r#"<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="ja" xml:lang="ja">
@@ -120,12 +142,10 @@ impl EpubGenerator {
 <body>
 <nav epub:type="toc" id="toc">
 <h1>目次</h1>
-<ol>
-<li><a href="xhtml/content.xhtml">Begin Reading</a></li>
-</ol>
+{}
 </nav>
 </body>
-</html>"#)
+</html>"#, nav_body)
     }
 
     fn generate_css(&self) -> String {
@@ -171,12 +191,12 @@ mod tests {
         let text = cow.into_owned();
 
         let tokens = parse_aozora(text).expect("Tokenization failed");
-        let items = parse(tokens).expect("Parsing failed");
-        let root = parse_blocks(items).expect("Block parsing failed");
+        let doc = parse(tokens).expect("Parsing failed");
+        let root = parse_blocks(doc.items).expect("Block parsing failed");
 
         let generator = EpubGenerator::new(
-            "人間失格".to_string(),
-            "太宰治".to_string(),
+            doc.metadata.title, // Use extracted title
+            doc.metadata.author, // Use extracted author
             root
         );
 
@@ -203,12 +223,12 @@ mod tests {
         let text = cow.into_owned();
 
         let tokens = parse_aozora(text).expect("Tokenization failed");
-        let items = parse(tokens).expect("Parsing failed");
-        let root = parse_blocks(items).expect("Block parsing failed");
+        let doc = parse(tokens).expect("Parsing failed");
+        let root = parse_blocks(doc.items).expect("Block parsing failed");
 
         let generator = EpubGenerator::new(
-            "人間失格".to_string(),
-            "太宰治".to_string(),
+            doc.metadata.title,
+            doc.metadata.author,
             root
         );
 

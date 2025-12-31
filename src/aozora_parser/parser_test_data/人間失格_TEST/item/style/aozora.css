@@ -1,0 +1,19 @@
+@charset "utf-8";
+html {
+  writing-mode: vertical-rl;
+  -webkit-writing-mode: vertical-rl;
+  -epub-writing-mode: vertical-rl;
+}
+body {
+  font-family: serif;
+}
+.jisage-1 { margin-inline-start: 1em; }
+.jisage-2 { margin-inline-start: 2em; }
+.jisage-3 { margin-inline-start: 3em; }
+.chitsuki-1 { margin-block-end: 1em; text-align: right; }
+.bousen { text-decoration: underline; text-decoration-style: solid; text-decoration-skip-ink: none; }
+.em { font-weight: bold; } /* Simplified */
+.kaimihiraki { height: 100vh; width: 100%; break-after: always; }
+.page-break { break-after: page; }
+.column-break { break-after: column; }
+/* ... Add more as needed ... */
