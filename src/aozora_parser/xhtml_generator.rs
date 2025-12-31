@@ -28,69 +28,33 @@ impl XhtmlGenerator {
         }
     }
 
-    pub fn generate(block: &AozoraBlock) -> (String, Vec<TocEntry>) {
+    pub fn generate(block: &AozoraBlock, title: &str) -> (String, Vec<TocEntry>) {
         let mut generator = XhtmlGenerator::new();
         generator.render_block(block);
 
-        let css = r#"
-@namespace "http://www.w3.org/1999/xhtml";
-html {
-    writing-mode: vertical-rl;
-}
-body {
-    font-family: serif;
-}
-.indent-1 { margin-block-start: 1em; }
-.indent-2 { margin-block-start: 2em; }
-.indent-3 { margin-block-start: 3em; }
-.indent-4 { margin-block-start: 4em; }
-.indent-5 { margin-block-start: 5em; }
-.indent-6 { margin-block-start: 6em; }
-.indent-7 { margin-block-start: 7em; }
-.indent-8 { margin-block-start: 8em; }
-.indent-9 { margin-block-start: 9em; }
-.indent-10 { margin-block-start: 10em; }
-
-.chitsuki-1 { margin-block-end: 1em; text-align: right; }
-.jisage-1 { margin-inline-start: 1em; }
-.jisage-2 { margin-inline-start: 2em; }
-.jisage-3 { margin-inline-start: 3em; }
-
-.kakomi {
-    border: 1px solid currentColor;
-    padding: 1em;
-    margin: 1em;
-}
-
-.yokogumi {
-    writing-mode: horizontal-tb;
-}
-
-h2, h3, h4, h5 {
-    font-weight: bold;
-}
-.midashi-dogyo {
-    display: inline;
-    font-weight: bold;
-}
-"#;
         (
             format!(
-                r#"<?xml version="1.0" encoding="utf-8"?>
+                r#"<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="ja">
+<html
+ xmlns="http://www.w3.org/1999/xhtml"
+ xmlns:epub="http://www.idpf.org/2007/ops"
+ xml:lang="ja"
+ class="vrtl"
+>
 <head>
-<meta charset="UTF-8" />
-<title>Aozora Output</title>
-<style>
-{}
-</style>
+<meta charset="UTF-8"/>
+<title>{}</title>
+<link rel="stylesheet" type="text/css" href="../style/book-style.css"/>
+
 </head>
 <body>
+<div class="main">
 {}
+</div>
 </body>
 </html>"#,
-                css, generator.body
+                title, generator.body
             ),
             generator.toc_entries,
         )
@@ -409,9 +373,8 @@ mod tests {
             ruby: None,
         })];
         let root = crate::aozora_parser::block_parser::parse_blocks(items).unwrap();
-        let (html, _) = XhtmlGenerator::generate(&root);
+        let (html, _) = XhtmlGenerator::generate(&root, "Test");
         assert!(html.contains("Hello"));
-        assert!(html.contains("writing-mode: vertical-rl"));
     }
 }
 
@@ -444,7 +407,7 @@ mod integration_tests {
         let root = parse_blocks(doc.items).expect("Block parsing failed");
 
         // Generate
-        let (xhtml, _toc) = XhtmlGenerator::generate(&root);
+        let (xhtml, _toc) = XhtmlGenerator::generate(&root, "桜桃");
 
         // Assertions
         assert!(xhtml.contains("子供より親が大事"));
@@ -502,7 +465,7 @@ mod integration_tests {
             }))),
         ];
         let root = parse_blocks(items).unwrap();
-        let (html, toc) = XhtmlGenerator::generate(&root);
+        let (html, toc) = XhtmlGenerator::generate(&root, "Test");
         println!("Generated HTML: {}", html);
 
         // Validation: H2 should NOT contain p

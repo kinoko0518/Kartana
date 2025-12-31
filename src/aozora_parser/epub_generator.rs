@@ -2,7 +2,7 @@ use crate::aozora_parser::block_parser::AozoraBlock;
 use crate::aozora_parser::xhtml_generator::{XhtmlGenerator, TocEntry};
 use std::fmt::Write as FmtWrite;
 use std::fs::File;
-use std::io::{Write, Cursor};
+use std::io::Write;
 use std::path::Path;
 use zip::write::SimpleFileOptions;
 use zip::ZipWriter;
@@ -42,7 +42,7 @@ impl EpubGenerator {
             .unix_permissions(0o755);
 
         // Generate content first to get TOC
-        let (body_content, toc_entries) = XhtmlGenerator::generate(&self.blocks);
+        let (body_content, toc_entries) = XhtmlGenerator::generate(&self.blocks, &self.title);
 
         // META-INF/container.xml
         zip.start_file("META-INF/container.xml", options_deflate)?;
@@ -56,15 +56,21 @@ impl EpubGenerator {
         zip.start_file("item/nav.xhtml", options_deflate)?;
         zip.write_all(self.generate_nav(&toc_entries).as_bytes())?;
         
-        // item/style/aozora.css (Basic vertical writing CSS)
+        // Copy CSS files from reference directory
         zip.add_directory("item/style", options_deflate)?;
-        zip.start_file("item/style/aozora.css", options_deflate)?;
-        zip.write_all(self.generate_css().as_bytes())?;
+        let css_files = self.get_css_contents();
+        for (filename, content) in &css_files {
+            zip.start_file(format!("item/style/{}", filename), options_deflate)?;
+            zip.write_all(content.as_bytes())?;
+        }
 
-        // item/xhtml/content.xhtml
+        // item/xhtml/title.xhtml (title page)
         zip.add_directory("item/xhtml", options_deflate)?;
-        zip.start_file("item/xhtml/content.xhtml", options_deflate)?;
-        
+        zip.start_file("item/xhtml/title.xhtml", options_deflate)?;
+        zip.write_all(self.generate_title_page().as_bytes())?;
+
+        // item/xhtml/0001.xhtml (main content)
+        zip.start_file("item/xhtml/0001.xhtml", options_deflate)?;
         zip.write_all(body_content.as_bytes())?;
 
         zip.finish()?;
@@ -72,103 +78,58 @@ impl EpubGenerator {
     }
 
     fn generate_container(&self) -> String {
-        r#"<?xml version="1.0"?>
-<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
-<rootfiles>
-<rootfile full-path="item/standard.opf" media-type="application/oebps-package+xml"/>
-</rootfiles>
-</container>"#.to_string()
+        include_str!("epub_template/container.xml").to_string()
     }
 
     fn generate_opf(&self) -> String {
-        format!(r#"<?xml version="1.0" encoding="UTF-8"?>
-<package xmlns="http://www.idpf.org/2007/opf" version="3.0" xml:lang="ja" unique-identifier="unique-id">
-<metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
-<dc:title id="title">{}</dc:title>
-<dc:creator id="creator">{}</dc:creator>
-<dc:language>ja</dc:language>
-<dc:identifier id="unique-id">urn:uuid:{}</dc:identifier>
-<meta property="dcterms:modified">{}</meta>
-</metadata>
-<manifest>
-<item media-type="application/xhtml+xml" id="nav" href="nav.xhtml" properties="nav"/>
-<item id="style" href="style/aozora.css" media-type="text/css"/>
-<item id="content" href="xhtml/content.xhtml" media-type="application/xhtml+xml"/>
-</manifest>
-<spine page-progression-direction="rtl">
-<itemref idref="nav"/>
-<itemref idref="content"/>
-</spine>
-</package>"#, 
-            self.title, 
-            self.creator, 
-            self.uuid,
-            chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ")
-        )
+        include_str!("epub_template/standard.opf")
+            .replace("{title}", &self.title)
+            .replace("{creator}", &self.creator)
+            .replace("{uuid}", &self.uuid)
+            .replace("{modified}", &chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string())
+    }
+
+    fn generate_title_page(&self) -> String {
+        include_str!("epub_template/title.xhtml")
+            .replace("{title}", &self.title)
+            .replace("{creator}", &self.creator)
     }
 
     fn generate_nav(&self, toc: &[TocEntry]) -> String {
-        let mut nav_body = String::new();
-        // Simple ol/li generation. 
-        // For nested levels, it's more complex, but standard TOC is often flat or handled by nesting ol.
-        // Let's implement flat first or simple nesting?
-        // Let's stick to flat list if simple, or respect indentation.
-        // For Aozora midashi levels, we can just put them in order.
+        let mut toc_items = String::new();
         
-        nav_body.push_str("<ol>\n");
-        // Always include "Begin Reading" / Cover? Or just start with headings?
-        // If there are no headings, at least link to content.
-        if toc.is_empty() {
-             nav_body.push_str("<li><a href=\"xhtml/content.xhtml\">本文</a></li>\n");
-        } else {
+        // Add title page link first
+        writeln!(toc_items, "\t\t\t<li><a href=\"xhtml/title.xhtml\">{}</a>", self.title).unwrap();
+        
+        // Add heading links
+        if !toc.is_empty() {
+            toc_items.push_str("\t\t<ol>\n");
             for entry in toc {
-                // Using recursive or stack logic for proper nesting is best, but for MVP:
-                // Just use flat list or styling?
-                // EPUB TOC usually requires proper nesting for levels.
-                // Let's just output flattened for now as indentation might be handled by CSS or reader ignored.
-                // Actually, let's try to just output all as li.
-                writeln!(nav_body, "<li><a href=\"xhtml/content.xhtml#{}\">{}</a></li>", entry.id, entry.text).unwrap();
+                writeln!(toc_items, "\t\t\t<li><a href=\"xhtml/0001.xhtml#{}\">　{}</a></li>", entry.id, entry.text).unwrap();
             }
+            toc_items.push_str("\t\t</ol>\n");
         }
-        nav_body.push_str("</ol>\n");
+        toc_items.push_str("\t\t</li>");
 
-        format!(r#"<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="ja" xml:lang="ja">
-<head>
-<meta charset="UTF-8"/>
-<title>Navigation</title>
-</head>
-<body>
-<nav epub:type="toc" id="toc">
-<h1>目次</h1>
-{}
-</nav>
-</body>
-</html>"#, nav_body)
+        include_str!("epub_template/nav.xhtml")
+            .replace("{title}", &self.title)
+            .replace("{toc_items}", &toc_items)
     }
 
-    fn generate_css(&self) -> String {
-        r#"@charset "utf-8";
-html {
-  writing-mode: vertical-rl;
-  -webkit-writing-mode: vertical-rl;
-  -epub-writing-mode: vertical-rl;
-}
-body {
-  font-family: serif;
-}
-.jisage-1 { margin-inline-start: 1em; }
-.jisage-2 { margin-inline-start: 2em; }
-.jisage-3 { margin-inline-start: 3em; }
-.chitsuki-1 { margin-block-end: 1em; text-align: right; }
-.bousen { text-decoration: underline; text-decoration-style: solid; text-decoration-skip-ink: none; }
-.em { font-weight: bold; } /* Simplified */
-.kaimihiraki { height: 100vh; width: 100%; break-after: always; }
-.page-break { break-after: page; }
-.column-break { break-after: column; }
-/* ... Add more as needed ... */
-"#.to_string()
+    fn get_css_contents(&self) -> Vec<(String, String)> {
+        // CSS files embedded from src/aozora_parser/epub_template/css/
+        let css_files = [
+            ("aozora.css", include_str!("epub_template/css/aozora.css")),
+            ("book-style.css", include_str!("epub_template/css/book-style.css")),
+            ("fixed-layout-jp.css", include_str!("epub_template/css/fixed-layout-jp.css")),
+            ("font.css", include_str!("epub_template/css/font.css")),
+            ("style-advance.css", include_str!("epub_template/css/style-advance.css")),
+            ("style-reset.css", include_str!("epub_template/css/style-reset.css")),
+            ("style-standard.css", include_str!("epub_template/css/style-standard.css")),
+            ("text.css", include_str!("epub_template/css/text.css")),
+        ];
+        
+        css_files.iter().map(|(name, content)| (name.to_string(), content.to_string())).collect()
     }
 }
 
