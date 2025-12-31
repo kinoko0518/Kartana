@@ -1,0 +1,208 @@
+   Compiling kartana v0.1.0 (C:\Projects\OwnProjects\Kartana)
+warning: unused import: `std::path::PathBuf`
+ --> src\editor_page.rs:2:5
+  |
+2 | use std::path::PathBuf;
+  |     ^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `Path`
+ --> src\top_page\works.rs:6:12
+  |
+6 |     path::{Path, PathBuf},
+  |            ^^^^
+
+warning: type `command::Command` is more private than the item `command::parse_command`
+   --> src\aozora_parser\tokenizer\command.rs:159:1
+    |
+159 | pub fn parse_command(commands: CommandToken) -> Option<Command> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ function `command::parse_command` is reachable at visibility `pub(in crate::aozora_parser::tokenizer)`
+    |
+note: but type `command::Command` is only usable at visibility `pub(self)`
+   --> src\aozora_parser\tokenizer\command.rs:142:1
+    |
+142 | enum Command {
+    | ^^^^^^^^^^^^
+    = note: `#[warn(private_interfaces)]` on by default
+
+warning: struct `AozoraBlock` is never constructed
+ --> src\aozora_parser\block_decoration.rs:1:8
+  |
+1 | struct AozoraBlock {
+  |        ^^^^^^^^^^^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: enum `BlockDecoration` is never used
+ --> src\aozora_parser\block_decoration.rs:6:6
+  |
+6 | enum BlockDecoration {
+  |      ^^^^^^^^^^^^^^^
+
+warning: enum `TextDecoration` is never used
+ --> src\aozora_parser\text_decoration.rs:5:6
+  |
+5 | enum TextDecoration {
+  |      ^^^^^^^^^^^^^^
+
+warning: struct `AozoraText` is never constructed
+  --> src\aozora_parser\text_decoration.rs:13:8
+   |
+13 | struct AozoraText {
+   |        ^^^^^^^^^^
+
+warning: enum `ParseError` is never used
+  --> src\aozora_parser\text_decoration.rs:19:6
+   |
+19 | enum ParseError {
+   |      ^^^^^^^^^^
+
+warning: enum `TextDecoratedTokens` is never used
+  --> src\aozora_parser\text_decoration.rs:23:6
+   |
+23 | enum TextDecoratedTokens {
+   |      ^^^^^^^^^^^^^^^^^^^
+
+warning: function `parse` is never used
+  --> src\aozora_parser\text_decoration.rs:33:4
+   |
+33 | fn parse(tokens: Vec<AozoraToken>) -> Result<Vec<TextDecoratedTokens>, ParseError> {
+   |    ^^^^^
+
+warning: constant `ZERO_TO_NINE` is never used
+ --> src\aozora_parser\tokenizer\command.rs:5:7
+  |
+5 | const ZERO_TO_NINE: [char; 10] = ['・・, '・・, '・・, '・・, '・・, '・・, '・・, '・・, '・・, '・・];
+  |       ^^^^^^^^^^^^
+
+warning: multiple variants are never constructed
+  --> src\aozora_parser\tokenizer\command.rs:25:5
+   |
+24 | enum Bouten {
+   |      ------ variants in this enum
+25 |     Sirogoma,
+   |     ^^^^^^^^
+26 |     BlackCircle,
+   |     ^^^^^^^^^^^
+27 |     WhiteCircle,
+   |     ^^^^^^^^^^^
+28 |     BlackTriangle,
+   |     ^^^^^^^^^^^^^
+29 |     WhiteTriangle,
+   |     ^^^^^^^^^^^^^
+30 |     DoubleCircle,
+   |     ^^^^^^^^^^^^
+31 |     Hebinome,
+   |     ^^^^^^^^
+32 |     Cross,
+   |     ^^^^^
+
+warning: variants `Bousen`, `Double`, `Chain`, `Dashed`, and `Wavy` are never constructed
+  --> src\aozora_parser\tokenizer\command.rs:39:5
+   |
+38 | enum Bousen {
+   |      ------ variants in this enum
+39 |     Bousen,
+   |     ^^^^^^
+40 |     Double,
+   |     ^^^^^^
+41 |     Chain,
+   |     ^^^^^
+42 |     Dashed,
+   |     ^^^^^^
+43 |     Wavy,
+   |     ^^^^
+
+warning: multiple variants are never constructed
+   --> src\aozora_parser\tokenizer\command.rs:87:5
+    |
+ 81 | enum CommandBegin {
+    |      ------------ variants in this enum
+...
+ 87 |     Bouten(Bouten),
+    |     ^^^^^^
+ 88 |     Bousen(Bousen),
+    |     ^^^^^^
+ 89 |     Bold,
+    |     ^^^^
+ 90 |     Italic,
+    |     ^^^^^^
+...
+ 96 |     Kakomikei,
+    |     ^^^^^^^^^
+...
+100 |     Yokogumi,
+    |     ^^^^^^^^
+...
+104 |     Jitsume(usize),
+    |     ^^^^^^^
+
+warning: multiple variants are never constructed
+   --> src\aozora_parser\tokenizer\command.rs:113:5
+    |
+107 | enum CommandEnd {
+    |      ---------- variants in this enum
+...
+113 |     Bouten,
+    |     ^^^^^^
+114 |     Bousen,
+    |     ^^^^^^
+115 |     Bold,
+    |     ^^^^
+116 |     Italic,
+    |     ^^^^^^
+...
+119 |     Kakomikei,
+    |     ^^^^^^^^^
+120 |     Yokogumi,
+    |     ^^^^^^^^
+121 |     Jitsume,
+    |     ^^^^^^^
+
+warning: variants `Bouten`, `Bousen`, `Bold`, and `Italic` are never constructed
+   --> src\aozora_parser\tokenizer\command.rs:136:5
+    |
+124 | enum SingleCommand {
+    |      ------------- variants in this enum
+...
+136 |     Bouten((Bouten, String)),
+    |     ^^^^^^
+137 |     Bousen((Bousen, String)),
+    |     ^^^^^^
+138 |     Bold(String),
+    |     ^^^^
+139 |     Italic(String),
+    |     ^^^^^^
+
+warning: unused `Result` that must be used
+  --> src\top_page\works.rs:43:9
+   |
+43 |         writeln!(file, "{}", &toml::to_string(self).unwrap());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+   = note: `#[warn(unused_must_use)]` (part of `#[warn(unused)]`) on by default
+help: use `let _ = ...` to ignore the resulting value
+   |
+43 |         let _ = writeln!(file, "{}", &toml::to_string(self).unwrap());
+   |         +++++++
+
+warning: `kartana` (bin "kartana" test) generated 17 warnings (run `cargo fix --bin "kartana" --tests` to apply 2 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.42s
+     Running unittests src\main.rs (target\debug\deps\kartana-491c3ef3ebf8cc26.exe)
+
+running 10 tests
+test aozora_parser::tokenizer::tests::test_dakuten_odoriji ... ok
+test aozora_parser::tokenizer::tests::test_command ... ok
+test aozora_parser::tokenizer::tests::test_hiragana ... ok
+test aozora_parser::tokenizer::tests::test_mixed_text ... ok
+test aozora_parser::tokenizer::tests::test_odoriji ... ok
+test aozora_parser::tokenizer::tests::test_ruby ... ok
+test aozora_parser::tokenizer::command::tests::test_jisage ... ok
+test aozora_parser::tokenizer::command::tests::test_midashi_end ... ok
+test aozora_parser::tokenizer::command::tests::test_midashi_begin ... ok
+test aozora_parser::tokenizer::command::tests::test_midashi_ref ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
