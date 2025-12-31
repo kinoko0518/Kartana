@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" version="3.0" xml:lang="ja" unique-identifier="unique-id">
 <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
-<dc:title id="title">人間失格</dc:title>
+<dc:title id="title">桜桃</dc:title>
 <dc:creator id="creator">太宰治</dc:creator>
 <dc:language>ja</dc:language>
-<dc:identifier id="unique-id">urn:uuid:eedd0bc3-67b3-44d4-a603-8537553e3880</dc:identifier>
-<meta property="dcterms:modified">2025-12-31T15:04:33Z</meta>
+<dc:identifier id="unique-id">urn:uuid:9380ea71-0fa2-4df2-95f9-6f021d1ccf77</dc:identifier>
+<meta property="dcterms:modified">2025-12-31T15:45:41Z</meta>
 </metadata>
 <manifest>
 <item media-type="application/xhtml+xml" id="nav" href="nav.xhtml" properties="nav"/>

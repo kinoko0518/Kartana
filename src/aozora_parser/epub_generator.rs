@@ -183,9 +183,9 @@ mod tests {
     use encoding_rs::SHIFT_JIS;
 
     #[test]
-    fn test_generate_epub_ningen_shikkaku() {
+    fn test_generate_epub_outou() {
         let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        path.push("src/aozora_parser/parser_test_data/人間失格.txt");
+        path.push("src/aozora_parser/parser_test_data/桜桃.txt");
         let bytes = fs::read(&path).expect("Could not find test file");
         let (cow, _, _) = SHIFT_JIS.decode(&bytes);
         let text = cow.into_owned();
@@ -195,28 +195,26 @@ mod tests {
         let root = parse_blocks(doc.items).expect("Block parsing failed");
 
         let generator = EpubGenerator::new(
-            doc.metadata.title, // Use extracted title
-            doc.metadata.author, // Use extracted author
+            doc.metadata.title,
+            doc.metadata.author,
             root
         );
 
-        let output_path = PathBuf::from("ningen_shikkaku.epub");
+        let output_path = PathBuf::from("outou.epub");
         generator.write_to_file(&output_path).expect("Failed to write epub");
         
-        // Assert file exists
         assert!(output_path.exists());
         
-        // Clean up
         let _ = fs::remove_file(output_path);
     }
 
     #[test]
-    fn generate_ningen_shikkaku_test_epub() {
+    fn generate_outou_test_epub() {
         let mut source_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        source_path.push("src/aozora_parser/parser_test_data/人間失格.txt");
+        source_path.push("src/aozora_parser/parser_test_data/桜桃.txt");
         
         let mut output_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        output_path.push("src/aozora_parser/parser_test_data/人間失格_TEST.epub");
+        output_path.push("src/aozora_parser/parser_test_data/桜桃_TEST.epub");
 
         let bytes = fs::read(&source_path).expect("Could not find test file");
         let (cow, _, _) = SHIFT_JIS.decode(&bytes);

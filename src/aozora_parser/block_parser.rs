@@ -63,15 +63,11 @@ pub fn parse_blocks(items: Vec<ParsedItem>) -> Result<AozoraBlock, BlockParseErr
         }
     }
 
-    if stack.len() != 1 {
-        // Unclosed blocks remain
-        let unclosed = stack.pop().unwrap();
-        // If it's not root (which we checked len != 1), it has decoration
-        if let Some(dec) = unclosed.decoration {
-             return Err(BlockParseError::UnclosedBlock(dec));
-        } else {
-             // Should not happen as root is bottom
-             panic!("Stack logic error");
+    // Auto-close any unclosed blocks (some Aozora documents don't explicitly close all blocks)
+    while stack.len() > 1 {
+        let finished_block = stack.pop().unwrap();
+        if let Some(parent) = stack.last_mut() {
+            parent.elements.push(BlockElement::Block(finished_block));
         }
     }
 
@@ -155,13 +151,21 @@ mod tests {
     }
 
     #[test]
-    fn test_unclosed_error() {
+    fn test_unclosed_auto_close() {
+         // Unclosed blocks should be auto-closed at document end
          let items = vec![
             ParsedItem::Command(Command::CommandBegin(CommandBegin::Yokogumi)),
             make_text("oops"),
         ];
-        let res = parse_blocks(items);
-        assert!(matches!(res, Err(BlockParseError::UnclosedBlock(_))));
+        let root = parse_blocks(items).unwrap();
+        // The unclosed block should be added to root
+        assert_eq!(root.elements.len(), 1);
+        if let BlockElement::Block(b) = &root.elements[0] {
+            assert!(matches!(b.decoration, Some(CommandBegin::Yokogumi)));
+            assert_eq!(b.elements.len(), 1);
+        } else {
+            panic!("Expected block");
+        }
     }
 
     #[test]

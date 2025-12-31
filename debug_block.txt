@@ -1,0 +1,1 @@
+   Compiling kartana v0.1.0 (C:\Projects\OwnProjects\Kartana)

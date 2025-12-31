@@ -429,7 +429,7 @@ mod integration_tests {
     #[test]
     fn test_ningen_shikkaku() {
         let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        path.push("src/aozora_parser/parser_test_data/人間失格.txt");
+        path.push("src/aozora_parser/parser_test_data/桜桃.txt");
 
         // Read bytes
         let bytes = fs::read(&path).expect("Could not find test file");
@@ -447,13 +447,13 @@ mod integration_tests {
         let (xhtml, _toc) = XhtmlGenerator::generate(&root);
 
         // Assertions
-        assert!(xhtml.contains("私は、その男の写真を三葉、見たことがある。"));
+        assert!(xhtml.contains("子供より親が大事"));
     }
 
     #[test]
     fn debug_tokens() {
         let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        path.push("src/aozora_parser/parser_test_data/人間失格.txt");
+        path.push("src/aozora_parser/parser_test_data/桜桃.txt");
         let bytes = fs::read(&path).expect("Could not find test file");
         let (cow, _, _) = SHIFT_JIS.decode(&bytes);
         let text = cow.into_owned();
