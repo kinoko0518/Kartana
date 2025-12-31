@@ -1,0 +1,109 @@
+   Compiling kartana v0.1.0 (C:\Projects\OwnProjects\Kartana)
+error[E0433]: failed to resolve: use of undeclared type `AozoraToken`
+   --> src\aozora_parser\xhtml_generator.rs:354:20
+    |
+354 |             if let AozoraToken::Ruby(r) = token {
+    |                    ^^^^^^^^^^^ use of undeclared type `AozoraToken`
+    |
+help: consider importing this enum
+    |
+312 +     use crate::aozora_parser::tokenizer::AozoraToken;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `AozoraToken`
+   --> src\aozora_parser\xhtml_generator.rs:365:20
+    |
+365 |             if let AozoraToken::Ruby(_) = token {
+    |                    ^^^^^^^^^^^ use of undeclared type `AozoraToken`
+    |
+help: consider importing this enum
+    |
+312 +     use crate::aozora_parser::tokenizer::AozoraToken;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `AozoraToken`
+   --> src\aozora_parser\xhtml_generator.rs:372:27
+    |
+372 |                           AozoraToken::Newline | AozoraToken::Command(_) | AozoraToken::RubySeparator => {
+    |                           ^^^^^^^^^^^ use of undeclared type `AozoraToken`
+    |
+help: consider importing this enum
+    |
+312 +     use crate::aozora_parser::tokenizer::AozoraToken;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `AozoraToken`
+   --> src\aozora_parser\xhtml_generator.rs:372:50
+    |
+372 |                           AozoraToken::Newline | AozoraToken::Command(_) | AozoraToken::RubySeparator => {
+    |                                                  ^^^^^^^^^^^ use of undeclared type `AozoraToken`
+    |
+help: consider importing this enum
+    |
+312 +     use crate::aozora_parser::tokenizer::AozoraToken;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `AozoraToken`
+   --> src\aozora_parser\xhtml_generator.rs:372:76
+    |
+372 |                           AozoraToken::Newline | AozoraToken::Command(_) | AozoraToken::RubySeparator => {
+    |                                                                            ^^^^^^^^^^^ use of undeclared type `AozoraToken`
+    |
+help: consider importing this enum
+    |
+312 +     use crate::aozora_parser::tokenizer::AozoraToken;
+    |
+
+warning: unused import: `SpecialCharacter`
+  --> src\aozora_parser\block_parser.rs:84:55
+   |
+84 |     use crate::aozora_parser::parser::{DecoratedText, SpecialCharacter};
+   |                                                       ^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused imports: `MidashiSize`, `MidashiType`, `Midashi`, and `SingleCommand`
+  --> src\aozora_parser\block_parser.rs:86:20
+   |
+86 |         Alignment, Midashi, MidashiSize, MidashiType, SingleCommand,
+   |                    ^^^^^^^  ^^^^^^^^^^^  ^^^^^^^^^^^  ^^^^^^^^^^^^^
+
+warning: unused imports: `AozoraToken`, `TextKind`, and `TextToken`
+  --> src\aozora_parser\block_parser.rs:88:43
+   |
+88 |     use crate::aozora_parser::tokenizer::{AozoraToken, TextToken, TextKind};
+   |                                           ^^^^^^^^^^^  ^^^^^^^^^  ^^^^^^^^
+
+warning: unused import: `crate::aozora_parser::block_parser::parse_blocks`
+   --> src\aozora_parser\xhtml_generator.rs:295:9
+    |
+295 |     use crate::aozora_parser::block_parser::parse_blocks;
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `AozoraToken`, `TextKind`, `TextToken`, and `self`
+   --> src\aozora_parser\xhtml_generator.rs:296:43
+    |
+296 |     use crate::aozora_parser::tokenizer::{self, AozoraToken, TextToken, TextKind};
+    |                                           ^^^^  ^^^^^^^^^^^  ^^^^^^^^^  ^^^^^^^^
+
+warning: unused import: `CommandToken`
+ --> src\aozora_parser\parser.rs:3:58
+  |
+3 | use crate::aozora_parser::tokenizer::{self, AozoraToken, CommandToken, TextToken};
+  |                                                          ^^^^^^^^^^^^
+
+warning: unused import: `std::path::PathBuf`
+ --> src\editor_page.rs:2:5
+  |
+2 | use std::path::PathBuf;
+  |     ^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Path`
+ --> src\top_page\works.rs:6:12
+  |
+6 |     path::{Path, PathBuf},
+  |            ^^^^
+
+For more information about this error, try `rustc --explain E0433`.
+warning: `kartana` (bin "kartana" test) generated 8 warnings
+error: could not compile `kartana` (bin "kartana" test) due to 5 previous errors; 8 warnings emitted

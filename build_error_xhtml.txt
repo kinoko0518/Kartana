@@ -1,0 +1,46 @@
+    Checking kartana v0.1.0 (C:\Projects\OwnProjects\Kartana)
+error: expected identifier, found reserved keyword `gen`
+  --> src\aozora_parser\xhtml_generator.rs:22:17
+   |
+22 |         let mut gen = XhtmlGenerator::new();
+   |                 ^^^ expected identifier, found reserved keyword
+   |
+help: escape `gen` to use it as an identifier
+   |
+22 |         let mut r#gen = XhtmlGenerator::new();
+   |                 ++
+
+error: expected expression, found reserved keyword `gen`
+  --> src\aozora_parser\xhtml_generator.rs:23:9
+   |
+23 |         gen.render_block(block);
+   |         ^^^ expected expression
+
+warning: unused imports: `Alignment`, `Bousen`, `Bouten`, and `Midashi`
+ --> src\aozora_parser\xhtml_generator.rs:4:5
+  |
+4 |     Alignment, Bouten, Bousen, Command, CommandBegin, Midashi, MidashiSize, MidashiType, SingleCommand,
+  |     ^^^^^^^^^  ^^^^^^  ^^^^^^                         ^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `CommandToken`
+ --> src\aozora_parser\parser.rs:3:58
+  |
+3 | use crate::aozora_parser::tokenizer::{self, AozoraToken, CommandToken, TextToken};
+  |                                                          ^^^^^^^^^^^^
+
+warning: unused import: `std::path::PathBuf`
+ --> src\editor_page.rs:2:5
+  |
+2 | use std::path::PathBuf;
+  |     ^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Path`
+ --> src\top_page\works.rs:6:12
+  |
+6 |     path::{Path, PathBuf},
+  |            ^^^^
+
+warning: `kartana` (bin "kartana") generated 4 warnings
+error: could not compile `kartana` (bin "kartana") due to 2 previous errors; 4 warnings emitted

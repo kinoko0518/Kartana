@@ -38,27 +38,58 @@ pub fn parse(tokens: Vec<AozoraToken>) -> Result<Vec<ParsedItem>, ParseError> {
                 ruby_buffer.push(t.clone());
             }
             AozoraToken::RubySeparator => {
-                let mut ruby: String = String::new();
-                while let Some(token2) = tokens.next() {
-                    match token2 {
-                        AozoraToken::Ruby(r) => {
-                            ruby = r.clone();
-                            break;
-                        }
-                        AozoraToken::Text(t) => {
-                            ruby_buffer.push(t.clone());
-                        }
-                        otherwise => return Err(ParseError::UnexpectedToken(otherwise.clone())),
-                    }
-                }
-                
-                // Flush buffer as a single DecoratedText with ruby
+                // Flush existing buffer first, as | starts a new specific block
                 if !ruby_buffer.is_empty() {
                     parsed_items.push(ParsedItem::Text(DecoratedText {
                         text: ruby_buffer.iter().map(|t| t.content.clone()).join(""),
-                        ruby: Some(ruby),
+                        ruby: None,
                     }));
                     ruby_buffer.clear();
+                }
+
+                let mut temp_buffer: Vec<TextToken> = Vec::new();
+                let mut valid_ruby = false;
+                
+                while let Some(token2) = tokens.peek() {
+                    match token2 {
+                        AozoraToken::Ruby(r) => {
+                            // Success
+                            let r_content = r.clone();
+                            tokens.next(); // Consume Ruby
+                            
+                            parsed_items.push(ParsedItem::Text(DecoratedText {
+                                text: temp_buffer.iter().map(|t| t.content.clone()).join(""),
+                                ruby: Some(r_content),
+                            }));
+                            valid_ruby = true;
+                            break;
+                        }
+                        AozoraToken::Text(t) => {
+                            temp_buffer.push(t.clone());
+                            tokens.next(); // Consume Text
+                        }
+                        _ => {
+                            // Unexpected token (Newline, Command, etc.)
+                            // Abort Ruby block
+                            break;
+                        }
+                    }
+                }
+                
+                if !valid_ruby {
+                    // Treat | as literal text and flush temp buffer
+                    parsed_items.push(ParsedItem::Text(DecoratedText {
+                        text: "｜".to_string(),
+                        ruby: None,
+                    }));
+                    
+                    if !temp_buffer.is_empty() {
+                         parsed_items.push(ParsedItem::Text(DecoratedText {
+                            text: temp_buffer.iter().map(|t| t.content.clone()).join(""),
+                            ruby: None,
+                        }));
+                    }
+                    // The unexpected token is still next in iterator (we peeked), so outer loop will handle it.
                 }
             }
             AozoraToken::Ruby(r) => {
@@ -79,14 +110,16 @@ pub fn parse(tokens: Vec<AozoraToken>) -> Result<Vec<ParsedItem>, ParseError> {
                         ruby: Some(r.clone()),
                     }));
                 } else {
-                    // Ruby without preceding text? Ignore or error? 
-                    // Aozora spec usually implies ruby follows text. 
-                    // If buffer is empty, maybe it's invalid or we just ignore.
-                    // Let's assume valid input for now or treat as unexpected?
-                    // But wait, if we have just flushed, buffer is empty. 
-                    // Ideally tokenizer guarantees context, but here we enforce it.
-                    // For robustness, let's treat as error.
-                    return Err(ParseError::UnexpectedToken(token.clone()));
+                    // Ruby without preceding text.
+                    // If buffer is empty, it might be that we just started or finished something.
+                    // Just ignore for now to be robust.
+                    // Or if ruby content is empty, definitely ignore.
+                    if r.is_empty() {
+                        continue;
+                    }
+                    // If not empty, maybe treat as Text(r) (ruby as text)? Or warning?
+                    // For now, ignore to prevent hard failure on malformed input.
+                    eprintln!("Warning: Ruby found without preceding text: {:?}", r);
                 }
             }
             AozoraToken::Command(c) => {
