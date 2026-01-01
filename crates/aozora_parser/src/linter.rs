@@ -189,7 +189,7 @@ fn check_text_patterns(text: &str, warnings: &mut Vec<LintWarning>) {
             warnings.push(LintWarning::warning(
                 LintWarningKind::PunctuationBeforeQuote,
                 Span::new(pos, pos + 2),
-                "句点は閉じ括弧の後に置くことが推奨されます（」。）",
+                "閉じ括弧は句点と同じ効果を持つため、句点との併用は冗長です",
             ));
         }
         
