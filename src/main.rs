@@ -1,4 +1,6 @@
+mod decoration;
 mod editor_page;
+mod rich_editor;
 mod top_page;
 mod reader_page;
 

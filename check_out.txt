@@ -1,0 +1,283 @@
+warning: unused import: `CommandToken`
+ --> crates\aozora_parser\src\parser.rs:3:43
+  |
+3 | ...n, CommandToken, S...
+  |       ^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `DecoratedText`
+ --> crates\aozora_parser\src\linter.rs:7:21
+  |
+7 | ...::{DecoratedText, P...
+  |       ^^^^^^^^^^^^^
+
+warning: unused import: `Midashi`
+ --> crates\aozora_parser\src\xhtml_generator.rs:4:28
+  |
+4 | ...n, Midashi, M...
+  |       ^^^^^^^
+
+warning: unused import: `itertools::Itertools`
+ --> crates\aozora_parser\src\tokenizer.rs:3:5
+  |
+3 | use itertools::Itertools;
+  |     ^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `ZERO_TO_NINE` is never used
+ --> crates\aozora_parser\src\tokenizer\command.rs:5:7
+  |
+5 | const ZERO_TO_NINE: [...
+  |       ^^^^^^^^^^^^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: field `css` is never read
+  --> crates\aozora_parser\src\xhtml_generator.rs:16:5
+   |
+15 | pub struct XhtmlGenerator {
+   |            -------------- field in this struct
+16 |     css: String,
+   |     ^^^
+
+warning: `aozora_parser` (lib) generated 6 warnings (run `cargo fix --lib -p aozora_parser` to apply 3 suggestions)
+    Checking kartana v0.1.0 (C:\Projects\OwnProjects\Kartana)
+error[E0603]: module `linter` is private
+  --> src\decoration.rs:6:20
+   |
+ 6 | use aozora_parser::linter::{LintWarning, Severity};
+   |                    ^^^^^^ private module
+   |
+note: the module `linter` is defined here
+  --> C:\Projects\OwnProjects\Kartana\crates\aozora_parser\src\lib.rs:37:1
+   |
+37 | mod linter;
+   | ^^^^^^^^^^
+
+error[E0603]: module `linter` is private
+  --> src\decoration.rs:6:20
+   |
+ 6 | use aozora_parser::linter::{LintWarning, Severity};
+   |                    ^^^^^^ private module
+   |
+help: consider importing this enum instead:
+      aozora_parser::Severity
+  --> src\decoration.rs:6:42
+   |
+ 6 | use aozora_parser::linter::{LintWarning, Severity};
+   |                                          ^^^^^^^^
+note: the module `linter` is defined here
+  --> C:\Projects\OwnProjects\Kartana\crates\aozora_parser\src\lib.rs:37:1
+   |
+37 | mod linter;
+   | ^^^^^^^^^^
+
+error[E0603]: module `tokenizer` is private
+  --> src\decoration.rs:7:20
+   |
+ 7 | use aozora_parser::tokenizer::{AozoraToken, Span};
+   |                    ^^^^^^^^^ private module
+   |
+help: consider importing this enum instead:
+      aozora_parser::AozoraToken
+  --> src\decoration.rs:7:32
+   |
+ 7 | use aozora_parser::tokenizer::{AozoraToken, Span};
+   |                                ^^^^^^^^^^^
+note: the module `tokenizer` is defined here
+  --> C:\Projects\OwnProjects\Kartana\crates\aozora_parser\src\lib.rs:34:1
+   |
+34 | mod tokenizer;
+   | ^^^^^^^^^^^^^
+
+error[E0603]: module `tokenizer` is private
+  --> src\decoration.rs:7:20
+   |
+ 7 | use aozora_parser::tokenizer::{AozoraToken, Span};
+   |                    ^^^^^^^^^ private module
+   |
+note: the module `tokenizer` is defined here
+  --> C:\Projects\OwnProjects\Kartana\crates\aozora_parser\src\lib.rs:34:1
+   |
+34 | mod tokenizer;
+   | ^^^^^^^^^^^^^
+
+error[E0603]: module `tokenizer` is private
+   --> src\decoration.rs:113:36
+    |
+113 |                 use aozora_parser::tokenizer::TextKind;
+    |                                    ^^^^^^^^^  -------- enum `TextKind` is not publicly re-exported
+    |                                    |
+    |                                    private module
+    |
+note: the module `tokenizer` is defined here
+   --> C:\Projects\OwnProjects\Kartana\crates\aozora_parser\src\lib.rs:34:1
+    |
+ 34 | mod tokenizer;
+    | ^^^^^^^^^^^^^
+
+error[E0603]: module `tokenizer` is private
+  --> src\editor_page.rs:45:44
+   |
+45 |         if let Ok(tokens) = aozora_parser::tokenizer::parse_aozora(text.clone()) {
+   |                                            ^^^^^^^^^ private module
+   |
+note: the module `tokenizer` is defined here
+  --> C:\Projects\OwnProjects\Kartana\crates\aozora_parser\src\lib.rs:34:1
+   |
+34 | mod tokenizer;
+   | ^^^^^^^^^^^^^
+help: consider importing this function instead
+   |
+45 -         if let Ok(tokens) = aozora_parser::tokenizer::parse_aozora(text.clone()) {
+45 +         if let Ok(tokens) = aozora_parser::parse_aozora(text.clone()) {
+   |
+
+error[E0603]: module `parser` is private
+  --> src\editor_page.rs:46:47
+   |
+46 |             if let Ok(items) = aozora_parser::parser::parse(tokens) {
+   |                                               ^^^^^^ private module
+   |
+note: the module `parser` is defined here
+  --> C:\Projects\OwnProjects\Kartana\crates\aozora_parser\src\lib.rs:35:1
+   |
+35 | mod parser;
+   | ^^^^^^^^^^
+help: consider importing this function instead
+   |
+46 -             if let Ok(items) = aozora_parser::parser::parse(tokens) {
+46 +             if let Ok(items) = aozora_parser::parse(tokens) {
+   |
+
+error[E0603]: module `block_parser` is private
+  --> src\editor_page.rs:47:44
+   |
+47 |                 let block = aozora_parser::block_parser::parse_blocks(items);
+   |                                            ^^^^^^^^^^^^ private module
+   |
+note: the module `block_parser` is defined here
+  --> C:\Projects\OwnProjects\Kartana\crates\aozora_parser\src\lib.rs:36:1
+   |
+36 | mod block_parser;
+   | ^^^^^^^^^^^^^^^^
+help: consider importing this function instead
+   |
+47 -                 let block = aozora_parser::block_parser::parse_blocks(items);
+47 +                 let block = aozora_parser::parse_blocks(items);
+   |
+
+error[E0603]: module `linter` is private
+  --> src\editor_page.rs:48:45
+   |
+48 |                 let result = aozora_parser::linter::lint(block, &text);
+   |                                             ^^^^^^ private module
+   |
+note: the module `linter` is defined here
+  --> C:\Projects\OwnProjects\Kartana\crates\aozora_parser\src\lib.rs:37:1
+   |
+37 | mod linter;
+   | ^^^^^^^^^^
+help: consider importing this function instead
+   |
+48 -                 let result = aozora_parser::linter::lint(block, &text);
+48 +                 let result = aozora_parser::lint(block, &text);
+   |
+
+error[E0603]: module `tokenizer` is private
+  --> src\rich_editor.rs:41:43
+   |
+41 |         let tokens = match aozora_parser::tokenizer::parse_aozora(text.clone()) {
+   |                                           ^^^^^^^^^ private module
+   |
+note: the module `tokenizer` is defined here
+  --> C:\Projects\OwnProjects\Kartana\crates\aozora_parser\src\lib.rs:34:1
+   |
+34 | mod tokenizer;
+   | ^^^^^^^^^^^^^
+help: consider importing this function instead
+   |
+41 -         let tokens = match aozora_parser::tokenizer::parse_aozora(text.clone()) {
+41 +         let tokens = match aozora_parser::parse_aozora(text.clone()) {
+   |
+
+warning: unused import: `Path`
+ --> src\top_page\works.rs:6:12
+  |
+6 |     path::{Path, PathBuf},
+  |            ^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+error[E0308]: mismatched types
+  --> src\editor_page.rs:47:71
+   |
+47 |                 let block = aozora_parser::block_parser::parse_blocks(items);
+   |                             ----------------------------------------- ^^^^^ expected `Vec<ParsedItem>`, found `AozoraDocument`
+   |                             |
+   |                             arguments to this function are incorrect
+   |
+   = note: expected struct `Vec<ParsedItem>`
+              found struct `AozoraDocument`
+note: function defined here
+  --> C:\Projects\OwnProjects\Kartana\crates\aozora_parser\src\block_parser.rs:42:8
+   |
+42 | pub fn parse_blocks(items: Vec<ParsedItem>) -> Result<AozoraBlock, BlockParseError> {
+   |        ^^^^^^^^^^^^
+
+error[E0308]: mismatched types
+   --> src\editor_page.rs:48:58
+    |
+ 48 |                 let result = aozora_parser::linter::lint(block, &text);
+    |                              --------------------------- ^^^^^ expected `AozoraBlock`, found `Result<AozoraBlock, BlockParseError>`
+    |                              |
+    |                              arguments to this function are incorrect
+    |
+    = note: expected struct `AozoraBlock`
+                 found enum `Result<AozoraBlock, BlockParseError>`
+note: function defined here
+   --> C:\Projects\OwnProjects\Kartana\crates\aozora_parser\src\linter.rs:110:8
+    |
+110 | pub fn lint(block: AozoraBlock, original_text: &str) -> LintResult {
+    |        ^^^^
+help: consider using `Result::expect` to unwrap the `Result<AozoraBlock, BlockParseError>` value, panicking if the value is a `Result::Err`
+    |
+ 48 |                 let result = aozora_parser::linter::lint(block.expect("REASON"), &text);
+    |                                                               +++++++++++++++++
+
+error[E0369]: binary operation `==` cannot be applied to type `Vec<Decoration>`
+  --> src\rich_editor.rs:19:5
+   |
+13 | #[derive(Props, Clone, PartialEq)]
+   |                        --------- in this derive macro expansion
+...
+19 |     pub extra_decorations: Vec<Decoration>,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: an implementation of `PartialEq` might be missing for `Decoration`
+  --> src\decoration.rs:51:1
+   |
+51 | pub struct Decoration {
+   | ^^^^^^^^^^^^^^^^^^^^^ must implement `PartialEq`
+help: consider annotating `Decoration` with `#[derive(PartialEq)]`
+  --> src\decoration.rs:51:1
+   |
+51 + #[derive(PartialEq)]
+52 | pub struct Decoration {
+   |
+
+error[E0308]: mismatched types
+  --> src\rich_editor.rs:74:24
+   |
+74 |                 if let Ok(text) = result.as_str() {
+   |                        ^^^^^^^^   --------------- this expression has type `std::option::Option<&str>`
+   |                        |
+   |                        expected `Option<&str>`, found `Result<_, _>`
+   |
+   = note: expected enum `std::option::Option<&str>`
+              found enum `Result<_, _>`
+
+Some errors have detailed explanations: E0308, E0369, E0603.
+For more information about an error, try `rustc --explain E0308`.
+warning: `kartana` (bin "kartana") generated 1 warning
+error: could not compile `kartana` (bin "kartana") due to 14 previous errors; 1 warning emitted

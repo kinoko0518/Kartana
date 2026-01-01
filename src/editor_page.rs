@@ -1,8 +1,9 @@
 use dioxus::prelude::*;
-use std::path::PathBuf;
 use std::fs;
 use encoding_rs::SHIFT_JIS;
 
+use crate::decoration::{decorations_from_lint, Decoration};
+use crate::rich_editor::RichEditor;
 use crate::top_page::works::{ActionIcon, Series};
 
 const BACK_ICON: Asset = asset!("/assets/icons/back.svg");
@@ -11,6 +12,7 @@ const BACK_ICON: Asset = asset!("/assets/icons/back.svg");
 pub fn Editor(series_title: String, chapter_title: String) -> Element {
     let navigator = use_navigator();
     let mut content = use_signal(|| String::new());
+    let mut lint_decorations = use_signal(|| Vec::<Decoration>::new());
 
     // Helper to get file path
     let file_path = {
@@ -26,15 +28,34 @@ pub fn Editor(series_title: String, chapter_title: String) -> Element {
         if path.exists() {
             if let Ok(bytes) = fs::read(path) {
                 let (cow, _, _) = SHIFT_JIS.decode(&bytes);
-                content.set(cow.into_owned());
+                // Normalize newlines to \n to avoid mixing \r\n and \n
+                let text = cow.replace("\r\n", "\n").replace("\r", "\n");
+                content.set(text);
             }
         }
     });
 
-    let handle_save = move |_| {
+    let mut handle_save = move |_| {
         let text = content();
+        
+        // Run Linting
+        if !text.is_empty() {
+             if let Ok(tokens) = aozora_parser::parse_aozora(text.clone()) {
+                if let Ok(doc) = aozora_parser::parse(tokens) {
+                    if let Ok(block) = aozora_parser::parse_blocks(doc.items) {
+                        let result = aozora_parser::lint(block, &text);
+                        let decorations = decorations_from_lint(&result.warnings);
+                        lint_decorations.set(decorations);
+                    }
+                }
+            }
+        } else {
+             lint_decorations.set(Vec::new());
+        }
+
         // Convert to CR+LF for Windows/Aozora standard
-        let text_crlf = text.replace("\n", "\r\n").replace("\r\r\n", "\r\n"); // Simple normalization
+        // Ensure consistent \r\n by first normalizing to \n
+        let text_crlf = text.replace("\r\n", "\n").replace("\r", "\n").replace("\n", "\r\n");
         
         let (cow, _, unmappable) = SHIFT_JIS.encode(&text_crlf);
         if unmappable {
@@ -53,7 +74,7 @@ pub fn Editor(series_title: String, chapter_title: String) -> Element {
         }
     };
 
-    // Keybinding Handler
+    // Keybinding Handler for RichEditor (contenteditable)
     let handle_keydown = move |evt: KeyboardEvent| {
         let key = evt.key();
         let modifiers = evt.modifiers();
@@ -61,10 +82,9 @@ pub fn Editor(series_title: String, chapter_title: String) -> Element {
         // Helper to insert text using execCommand for Undo support
         let insert_text_js = |text: &str| {
             format!(r#"
-                const textarea = document.getElementById('main_editor');
-                if (textarea) {{
-                    textarea.focus();
-                    // execCommand is deprecated but is the only reliable way to trigger undoable text insertion
+                const editor = document.getElementById('rich_editor');
+                if (editor) {{
+                    editor.focus();
                     document.execCommand('insertText', false, "{}");
                 }}
             "#, text.replace("\"", "\\\"").replace("\n", "\\n"))
@@ -73,72 +93,76 @@ pub fn Editor(series_title: String, chapter_title: String) -> Element {
         // Wrap selection: [prefix]selection[suffix]
         let wrap_selection_js = |prefix: &str, suffix: &str, keep_original: bool| {
             format!(r#"
-                const textarea = document.getElementById('main_editor');
-                if (textarea) {{
-                    textarea.focus();
-                    const start = textarea.selectionStart;
-                    const end = textarea.selectionEnd;
-                    const text = textarea.value.substring(start, end);
-                    // Construct replacement manually because execCommand inserts at cursor/swaps selection
-                    const replacement = {} + "{}" + text + "{}";
-                    document.execCommand('insertText', false, replacement);
-                    
-                    // Restore selection to cover the whole new text (mimicking setRangeText "select" mode)
-                    // New length is (maybe text) + prefix + text + suffix
-                    // Cursor is currently at the end
-                    textarea.setSelectionRange(start, start + replacement.length);
+                const editor = document.getElementById('rich_editor');
+                if (editor) {{
+                    editor.focus();
+                    const selection = window.getSelection();
+                    if (selection.rangeCount > 0) {{
+                        const range = selection.getRangeAt(0);
+                        const text = range.toString();
+                        const replacement = {} + "{}" + text + "{}";
+                        document.execCommand('insertText', false, replacement);
+                    }}
                 }}
             "#, if keep_original { "text" } else { "\"\"" }, prefix, suffix)
         };
 
-        // Ruby wrap: |text《》 with cursor inside
+        // Ruby wrap: text《》 with cursor inside
         let ruby_wrap_js = || {
-            format!(r#"
-                const textarea = document.getElementById('main_editor');
-                if (textarea) {{
-                    textarea.focus();
-                    const start = textarea.selectionStart;
-                    const end = textarea.selectionEnd;
-                    const text = textarea.value.substring(start, end);
-                    const replacement = text + "《》";
-                    document.execCommand('insertText', false, replacement);
-                    
-                    // Move cursor between 《 and 》. 
-                    // Current position is at the very end (after 》)
-                    const cursor = textarea.selectionEnd - 1; 
-                    textarea.setSelectionRange(cursor, cursor);
-                }}
-            "#)
+            r#"
+                const editor = document.getElementById('rich_editor');
+                if (editor) {
+                    editor.focus();
+                    const selection = window.getSelection();
+                    if (selection.rangeCount > 0) {
+                        const range = selection.getRangeAt(0);
+                        const text = range.toString();
+                        const replacement = text + "《》";
+                        document.execCommand('insertText', false, replacement);
+                        
+                        // Move cursor between 《 and 》
+                        const newSelection = window.getSelection();
+                        if (newSelection.rangeCount > 0) {
+                            const newRange = newSelection.getRangeAt(0);
+                            newRange.setStart(newRange.endContainer, newRange.endOffset - 1);
+                            newRange.collapse(true);
+                            newSelection.removeAllRanges();
+                            newSelection.addRange(newRange);
+                        }
+                    }
+                }
+            "#.to_string()
         };
 
-        // Using safe key string comparison
         let key_str = key.to_string();
 
         if key_str == "Tab" && !modifiers.shift() && !modifiers.ctrl() && !modifiers.alt() && !modifiers.meta() {
-            // Tab -> ［＃３字下げ］
             evt.prevent_default();
             let script = insert_text_js("［＃３字下げ］");
             let _ = document::eval(&script);
         } else if key_str == "Enter" && modifiers.ctrl() {
-            // Ctrl+Enter -> ［＃改頁］
             evt.prevent_default();
             let script = insert_text_js("\n［＃改頁］");
             let _ = document::eval(&script);
         } else if (key_str == "<" || key_str == ",") && modifiers.ctrl() && modifiers.shift() {
-            // Ctrl+Shift+< (or Ctrl+Shift+,) -> ［＃「文字列」に傍点］
             evt.prevent_default();
             let script = wrap_selection_js("［＃「", "」に傍点］", true);
             let _ = document::eval(&script);
         } else if (key_str == "<" || key_str == ",") && modifiers.ctrl() {
-            // Ctrl+< (if specific key) or Ctrl+, -> 文字列《（ここにカーソル位置を移動）》
             evt.prevent_default();
             let script = ruby_wrap_js();
             let _ = document::eval(&script);
         } else if (key_str == "s" || key_str == "S") && modifiers.ctrl() {
-            // Ctrl+S -> Save
+            println!("Ctrl+S pressed, saving...");
             evt.prevent_default();
+            evt.stop_propagation();
             handle_save(());
         }
+    };
+
+    // Handle content changes from RichEditor
+    let handle_change = move |new_text: String| {
+        content.set(new_text);
     };
 
     rsx! {
@@ -162,13 +186,10 @@ pub fn Editor(series_title: String, chapter_title: String) -> Element {
                 class: "editor_content",
                 div {
                     class: "text_area_container",
-                    textarea {
-                        id: "main_editor",
-                        class: "main_editor",
-                        placeholder: "ここに入力...",
-                        spellcheck: "false",
-                        value: "{content}",
-                        oninput: move |evt| content.set(evt.value()),
+                    RichEditor {
+                        content: content,
+                        extra_decorations: lint_decorations,
+                        onchange: handle_change,
                         onkeydown: handle_keydown,
                     }
                 }

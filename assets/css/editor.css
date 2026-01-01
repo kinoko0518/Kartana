@@ -161,3 +161,120 @@
 ::-webkit-scrollbar-corner {
     background-color: transparent;
 }
+
+/* =========================================
+   Rich Editor Styles
+   ========================================= */
+
+.rich_editor_container {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+}
+
+.rich_editor {
+    width: 100%;
+    min-height: 100%;
+    background-color: transparent;
+    color: var(--text-primary);
+    font-family: 'HaranoAjiMincho', serif;
+    font-size: 1.1rem;
+    line-height: 1.8;
+    outline: none;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    padding: 0;
+}
+
+.rich_editor:empty::before {
+    content: "ここに入力...";
+    color: var(--text-information);
+    opacity: 0.6;
+}
+
+/* =========================================
+   Syntax Highlighting Decorations
+   ========================================= */
+
+/* Commands: ［＃...］ */
+.deco-command {
+    color: #c586c0;
+    background-color: rgba(197, 134, 192, 0.1);
+    border-radius: 2px;
+}
+
+/* Ruby (furigana): 《...》 */
+.deco-ruby {
+    color: #4ec9b0;
+}
+
+/* Ruby separator: ｜ */
+.deco-ruby-sep {
+    color: #569cd6;
+    font-weight: bold;
+}
+
+/* Kanji characters */
+.deco-kanji {
+    /* Kanji have no special styling - inherits default */
+    color: inherit;
+}
+
+/* Hiragana characters */
+.deco-hiragana {
+    /* Hiragana have no special styling - inherits default */
+    color: inherit;
+}
+
+/* Katakana characters */
+.deco-katakana {
+    /* Katakana have no special styling - inherits default */
+    color: inherit;
+}
+
+/* =========================================
+   Lint Decorations
+   ========================================= */
+
+/* Error: Red wavy underline */
+.deco-lint-error {
+    text-decoration: underline wavy #f44747;
+    text-underline-offset: 3px;
+}
+
+/* Warning: Yellow wavy underline */
+.deco-lint-warning {
+    text-decoration: underline wavy #cca700;
+    text-underline-offset: 3px;
+}
+
+/* Info: Blue wavy underline */
+.deco-lint-info {
+    text-decoration: underline wavy #3794ff;
+    text-underline-offset: 3px;
+}
+
+/* Hover tooltip for lint messages */
+.deco-lint-error[title],
+.deco-lint-warning[title],
+.deco-lint-info[title] {
+    cursor: help;
+    position: relative;
+}
+
+/* =========================================
+   Combined Decoration Styles
+   ========================================= */
+
+/* When syntax and lint overlap */
+.deco-command.deco-lint-warning,
+.deco-ruby.deco-lint-warning {
+    text-decoration: underline wavy #cca700;
+    text-underline-offset: 3px;
+}
+
+.deco-command.deco-lint-error,
+.deco-ruby.deco-lint-error {
+    text-decoration: underline wavy #f44747;
+    text-underline-offset: 3px;
+}

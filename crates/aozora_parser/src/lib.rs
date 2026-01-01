@@ -31,10 +31,11 @@
 use std::path::Path;
 
 // Internal modules (implementation details)
-mod tokenizer;
-mod parser;
-mod block_parser;
-mod linter;
+// Internal modules (implementation details)
+pub mod tokenizer;
+pub mod parser;
+pub mod block_parser;
+pub mod linter;
 mod xhtml_generator;
 mod epub_generator;
 mod css;
