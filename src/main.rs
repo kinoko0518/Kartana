@@ -1,9 +1,11 @@
 mod editor_page;
 mod top_page;
+mod reader_page;
 
 use dioxus::prelude::*;
 use editor_page::Editor;
 use top_page::Top;
+use reader_page::Reader;
 
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
@@ -12,6 +14,8 @@ enum Route {
     Top {},
     #[route("/editor/:series_title/:chapter_title")]
     Editor { series_title: String, chapter_title: String },
+    #[route("/reader/:series_title/:chapter_title")]
+    Reader { series_title: String, chapter_title: String },
 }
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");
@@ -24,6 +28,7 @@ const FORMS_CSS: Asset = asset!("/assets/css/forms.css");
 const ICONS_CSS: Asset = asset!("/assets/css/icons.css");
 const MODAL_CSS: Asset = asset!("/assets/css/modal.css");
 const EDITOR_CSS: Asset = asset!("/assets/css/editor.css");
+const READER_CSS: Asset = asset!("/assets/css/reader.css");
 
 fn main() {
     dioxus::launch(App);
@@ -42,6 +47,7 @@ fn App() -> Element {
         document::Link { rel: "stylesheet", href: ICONS_CSS }
         document::Link { rel: "stylesheet", href: MODAL_CSS }
         document::Link { rel: "stylesheet", href: EDITOR_CSS }
+        document::Link { rel: "stylesheet", href: READER_CSS }
         Router::<Route> {}
     }
 }

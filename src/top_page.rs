@@ -154,7 +154,12 @@ pub fn Top() -> Element {
                                         }
                                         ActionIcon {
                                             icon: READ_ICON,
-                                            onclick: |_| {}, // Placeholder
+                                            onclick: move |_| {
+                                                navigator.push(crate::Route::Reader {
+                                                    series_title: series.read()[index].title.clone(),
+                                                    chapter_title: series.read()[index].chapters[chapter_idx].title.clone(),
+                                                });
+                                            },
                                         }
                                         ActionIcon {
                                             icon: DELETE_ICON,

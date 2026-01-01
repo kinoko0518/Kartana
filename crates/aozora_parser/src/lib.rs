@@ -31,16 +31,19 @@
 use std::path::Path;
 
 // Internal modules (implementation details)
+// Internal modules (implementation details)
 mod tokenizer;
 mod parser;
 mod block_parser;
 mod xhtml_generator;
 mod epub_generator;
+mod css;
 
 // Re-export main entry point functions
 pub use tokenizer::parse_aozora;
 pub use parser::parse;
 pub use block_parser::parse_blocks;
+pub use css::default_css;
 
 // Re-export primary types for working with documents
 pub use parser::{AozoraDocument, AozoraMetadata, ParsedItem, DecoratedText, SpecialCharacter, ParseError};
@@ -119,12 +122,12 @@ impl From<std::io::Error> for ConversionError {
 /// ```ignore
 /// let (xhtml, toc) = aozora_parser::text_to_xhtml(aozora_text)?;
 /// ```
-pub fn text_to_xhtml(text: String) -> Result<(String, Vec<TocEntry>), ConversionError> {
+pub fn text_to_xhtml(text: String) -> Result<(String, Vec<TocEntry>, AozoraMetadata), ConversionError> {
     let tokens = parse_aozora(text)?;
     let doc = parse(tokens)?;
     let blocks = parse_blocks(doc.items)?;
     let (xhtml, toc) = XhtmlGenerator::generate(&blocks, &doc.metadata.title);
-    Ok((xhtml, toc))
+    Ok((xhtml, toc, doc.metadata))
 }
 
 /// Converts Aozora Bunko format text directly to an EPUB file.
