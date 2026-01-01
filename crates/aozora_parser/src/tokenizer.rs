@@ -33,6 +33,30 @@ fn is_other(c: char) -> bool {
         && c != '／'
 }
 
+/// 元テキスト内での位置情報（文字単位）
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct Span {
+    /// 開始位置（0-indexed、文字単位）
+    pub start: usize,
+    /// 終了位置（exclusive、0-indexed、文字単位）
+    pub end: usize,
+}
+
+impl Span {
+    /// 新しいSpanを作成
+    pub fn new(start: usize, end: usize) -> Self {
+        Self { start, end }
+    }
+
+    /// 2つのSpanを結合（最小startから最大endまで）
+    pub fn merge(&self, other: &Span) -> Span {
+        Span {
+            start: self.start.min(other.start),
+            end: self.end.max(other.end),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum TextKind {
     Hiragana,
@@ -45,195 +69,198 @@ pub enum TextKind {
 pub struct TextToken {
     pub content: String,
     pub kind: TextKind,
+    pub span: Span,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct CommandToken {
     pub content: String,
+    pub span: Span,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum AozoraToken {
     Text(TextToken),
 
-    Ruby(String),
-    RubySeparator,
+    Ruby { content: String, span: Span },
+    RubySeparator(Span),
 
     Command(CommandToken),
 
-    Newline,
+    Newline(Span),
 
-    Odoriji,
-    DakutenOdoriji,
+    Odoriji(Span),
+    DakutenOdoriji(Span),
 }
 
 #[derive(Debug, Clone)]
 pub enum TokenizeError {
-    UnclosedCommand,
+    UnclosedCommand(Span),
 }
 
 pub fn parse_aozora(text: String) -> Result<Vec<AozoraToken>, TokenizeError> {
     let mut tokens = Vec::new();
-    let mut text = text.chars().multipeek();
+    let chars: Vec<char> = text.chars().collect();
+    let mut pos: usize = 0; // 現在の文字位置
 
-    while let Some(c) = text.next() {
+    while pos < chars.len() {
+        let c = chars[pos];
         match c {
             '《' => {
+                let start = pos;
+                pos += 1; // '《'を消費
                 let mut buffer = String::new();
-                while let Some(c2) = text.next() {
+                while pos < chars.len() {
+                    let c2 = chars[pos];
+                    pos += 1;
                     if c2 == '》' {
                         break;
                     } else {
                         buffer.push(c2);
                     }
                 }
-                tokens.push(AozoraToken::Ruby(buffer));
+                tokens.push(AozoraToken::Ruby {
+                    content: buffer,
+                    span: Span::new(start, pos),
+                });
             }
             '｜' => {
-                tokens.push(AozoraToken::RubySeparator);
+                tokens.push(AozoraToken::RubySeparator(Span::new(pos, pos + 1)));
+                pos += 1;
             }
             '\n' => {
-                tokens.push(AozoraToken::Newline);
+                tokens.push(AozoraToken::Newline(Span::new(pos, pos + 1)));
+                pos += 1;
             }
             '／' => {
-                text.reset_peek();
-                let p1 = text.peek().cloned();
-                let p2 = text.peek().cloned();
+                let start = pos;
+                let p1 = chars.get(pos + 1).cloned();
+                let p2 = chars.get(pos + 2).cloned();
 
                 match (p1, p2) {
                     (Some('″'), Some('＼')) => {
-                        // 濁点踊り字
-                        tokens.push(AozoraToken::DakutenOdoriji);
-                        text.next(); // Consume '″'
-                        text.next(); // Consume '＼'
+                        // 濁点踊り字 ／″＼
+                        tokens.push(AozoraToken::DakutenOdoriji(Span::new(start, start + 3)));
+                        pos += 3;
                     }
                     (Some('＼'), _) => {
-                        // 踊り字
-                        tokens.push(AozoraToken::Odoriji);
-                        text.next(); // Consume '＼'
+                        // 踊り字 ／＼
+                        tokens.push(AozoraToken::Odoriji(Span::new(start, start + 2)));
+                        pos += 2;
                     }
                     _ => {
                         let mut buffer = String::new();
                         buffer.push('／');
-                        while let Some(pc) = text.peek() {
-                            let pc = *pc;
-                            if is_other(pc) {
-                                buffer.push(pc);
-                                text.next();
-                            } else {
-                                break;
-                            }
+                        pos += 1;
+                        while pos < chars.len() && is_other(chars[pos]) {
+                            buffer.push(chars[pos]);
+                            pos += 1;
                         }
                         tokens.push(AozoraToken::Text(TextToken {
                             content: buffer,
                             kind: TextKind::Other,
+                            span: Span::new(start, pos),
                         }));
                     }
                 }
             }
             '［' => {
+                let start = pos;
                 // Check for command starter '＃'
-                text.reset_peek();
-                if let Some(&'＃') = text.peek() {
-                    text.next(); // Consume '＃'
+                if chars.get(pos + 1) == Some(&'＃') {
+                    pos += 2; // Consume '［＃'
                     let mut buffer = String::new();
                     loop {
-                        if let Some(c) = text.next() {
+                        if pos < chars.len() {
+                            let c = chars[pos];
+                            pos += 1;
                             if c == '］' {
-                                tokens.push(AozoraToken::Command(CommandToken { content: buffer }));
+                                tokens.push(AozoraToken::Command(CommandToken {
+                                    content: buffer,
+                                    span: Span::new(start, pos),
+                                }));
                                 break;
                             } else {
                                 buffer.push(c);
                             }
                         } else {
-                            return Err(TokenizeError::UnclosedCommand);
+                            return Err(TokenizeError::UnclosedCommand(Span::new(start, pos)));
                         }
                     }
                 } else {
                     // Just a '［', treat as Other text
                     let mut buffer = String::new();
                     buffer.push('［');
-                    while let Some(pc) = text.peek() {
-                        let pc = *pc;
-                        if is_other(pc) {
-                            buffer.push(pc);
-                            text.next();
-                        } else {
-                            break;
-                        }
+                    pos += 1;
+                    while pos < chars.len() && is_other(chars[pos]) {
+                        buffer.push(chars[pos]);
+                        pos += 1;
                     }
                     tokens.push(AozoraToken::Text(TextToken {
                         content: buffer,
                         kind: TextKind::Other,
+                        span: Span::new(start, pos),
                     }));
                 }
             }
             c if is_kanji(c) => {
+                let start = pos;
                 let mut buffer = String::new();
                 buffer.push(c);
-                text.reset_peek();
-                while let Some(&c2) = text.peek() {
-                    if is_kanji(c2) {
-                        buffer.push(c2);
-                        text.next();
-                    } else {
-                        break;
-                    }
+                pos += 1;
+                while pos < chars.len() && is_kanji(chars[pos]) {
+                    buffer.push(chars[pos]);
+                    pos += 1;
                 }
                 tokens.push(AozoraToken::Text(TextToken {
                     content: buffer,
                     kind: TextKind::Kanji,
+                    span: Span::new(start, pos),
                 }));
             }
             c if is_hiragana(c) => {
+                let start = pos;
                 let mut buffer = String::new();
                 buffer.push(c);
-                text.reset_peek();
-                while let Some(&c2) = text.peek() {
-                    if is_hiragana(c2) {
-                        buffer.push(c2);
-                        text.next();
-                    } else {
-                        break;
-                    }
+                pos += 1;
+                while pos < chars.len() && is_hiragana(chars[pos]) {
+                    buffer.push(chars[pos]);
+                    pos += 1;
                 }
                 tokens.push(AozoraToken::Text(TextToken {
                     content: buffer,
                     kind: TextKind::Hiragana,
+                    span: Span::new(start, pos),
                 }));
             }
             c if is_katakana(c) => {
+                let start = pos;
                 let mut buffer = String::new();
                 buffer.push(c);
-                text.reset_peek();
-                while let Some(&c2) = text.peek() {
-                    if is_katakana(c2) {
-                        buffer.push(c2);
-                        text.next();
-                    } else {
-                        break;
-                    }
+                pos += 1;
+                while pos < chars.len() && is_katakana(chars[pos]) {
+                    buffer.push(chars[pos]);
+                    pos += 1;
                 }
                 tokens.push(AozoraToken::Text(TextToken {
                     content: buffer,
                     kind: TextKind::Katakana,
+                    span: Span::new(start, pos),
                 }));
             }
             _ => {
+                let start = pos;
                 let mut buffer = String::new();
                 buffer.push(c);
-                text.reset_peek();
-                while let Some(&c2) = text.peek() {
-                    if is_other(c2) {
-                        buffer.push(c2);
-                        text.next();
-                    } else {
-                        break;
-                    }
+                pos += 1;
+                while pos < chars.len() && is_other(chars[pos]) {
+                    buffer.push(chars[pos]);
+                    pos += 1;
                 }
                 tokens.push(AozoraToken::Text(TextToken {
                     content: buffer,
                     kind: TextKind::Other,
+                    span: Span::new(start, pos),
                 }));
             }
         }
@@ -301,8 +328,10 @@ mod tests {
             _ => panic!("Expected Kanji"),
         }
         match &tokens[1] {
-            AozoraToken::Ruby(r) => {
-                assert_eq!(r, "かんじ");
+            AozoraToken::Ruby { content, span } => {
+                assert_eq!(content, "かんじ");
+                assert_eq!(span.start, 2); // 漢字 = 2 chars
+                assert_eq!(span.end, 7); // 《かんじ》 = 5 chars
             }
             _ => panic!("Expected Ruby"),
         }
@@ -326,7 +355,7 @@ mod tests {
         let input = "／＼".to_string();
         let tokens = parse_aozora(input).unwrap();
         assert_eq!(tokens.len(), 1);
-        assert!(matches!(tokens[0], AozoraToken::Odoriji));
+        assert!(matches!(tokens[0], AozoraToken::Odoriji(_)));
     }
 
     #[test]
@@ -334,6 +363,6 @@ mod tests {
         let input = "／″＼".to_string();
         let tokens = parse_aozora(input).unwrap();
         assert_eq!(tokens.len(), 1);
-        assert!(matches!(tokens[0], AozoraToken::DakutenOdoriji));
+        assert!(matches!(tokens[0], AozoraToken::DakutenOdoriji(_)));
     }
 }

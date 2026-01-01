@@ -5,6 +5,7 @@ use crate::tokenizer::command::{
 };
 use std::fmt::Write;
 
+#[derive(Debug, Clone)]
 pub struct TocEntry {
     pub level: u32,
     pub text: String,
@@ -106,7 +107,7 @@ impl XhtmlGenerator {
             match elem {
                 BlockElement::Item(item) => {
                     match item {
-                        ParsedItem::Newline => {
+                        ParsedItem::Newline(_) => {
                             if inline_buffer.is_empty() {
                                 // Only output empty p if NOT in heading
                                 if !is_heading {
@@ -117,15 +118,15 @@ impl XhtmlGenerator {
                                 inline_buffer.clear();
                             }
                         }
-                        ParsedItem::Command(Command::CommandBegin(_))
-                        | ParsedItem::Command(Command::CommandEnd(_))
-                        | ParsedItem::Command(Command::SingleCommand(SingleCommand::Midashi(_))) => {
+                        ParsedItem::Command { cmd: Command::CommandBegin(_), .. }
+                        | ParsedItem::Command { cmd: Command::CommandEnd(_), .. }
+                        | ParsedItem::Command { cmd: Command::SingleCommand(SingleCommand::Midashi(_)), .. } => {
                             // Flush existing buffer
                             self.flush_paragraph(&inline_buffer, is_heading);
                             inline_buffer.clear();
 
                             // If it is SingleCommand, we must render it now (as block)
-                            if let ParsedItem::Command(Command::SingleCommand(sc)) = item {
+                            if let ParsedItem::Command { cmd: Command::SingleCommand(_sc), .. } = item {
                                 // Temporarily treat as item
                                 // But render_item doesn't wrap in p unless caller does.
                                 // We just call render_item and it outputs <h2>...</h2>
@@ -242,7 +243,7 @@ impl XhtmlGenerator {
     fn accumulate_text_from_item(&self, item: &ParsedItem, acc: &mut String) {
         match item {
             ParsedItem::Text(dt) => acc.push_str(&dt.text),
-            ParsedItem::Command(Command::SingleCommand(SingleCommand::Midashi((_, content)))) => {
+            ParsedItem::Command { cmd: Command::SingleCommand(SingleCommand::Midashi((_, content))), .. } => {
                 acc.push_str(content);
             }
             // Ignore other commands
@@ -255,8 +256,8 @@ impl XhtmlGenerator {
             ParsedItem::Text(dt) => {
                 self.render_text(dt);
             }
-            ParsedItem::Newline => {}
-            ParsedItem::Command(Command::SingleCommand(sc)) => {
+            ParsedItem::Newline(_) => {}
+            ParsedItem::Command { cmd: Command::SingleCommand(sc), .. } => {
                 match sc {
                     SingleCommand::Bold(s) => {
                         write!(self.body, "<span class=\"bold\">{}</span>", escape_html(s))
@@ -328,7 +329,7 @@ impl XhtmlGenerator {
                     _ => {}
                 }
             }
-            ParsedItem::SpecialCharacter(sc) => match sc {
+            ParsedItem::SpecialCharacter { kind, .. } => match kind {
                 SpecialCharacter::Odoriji => write!(self.body, "／＼").unwrap(),
                 SpecialCharacter::DakutenOdoriji => write!(self.body, "／″＼").unwrap(),
             },
@@ -364,13 +365,14 @@ fn escape_html(s: &str) -> String {
 mod tests {
     use super::*;
     use crate::block_parser::parse_blocks;
-    use crate::tokenizer::{self, AozoraToken, TextKind, TextToken};
+    use crate::tokenizer::{self, AozoraToken, Span, TextKind, TextToken};
 
     #[test]
     fn test_simple_html_generation() {
         let items = vec![ParsedItem::Text(DecoratedText {
             text: "Hello".to_string(),
             ruby: None,
+            span: Span::default(),
         })];
         let root = crate::block_parser::parse_blocks(items).unwrap();
         let (html, _) = XhtmlGenerator::generate(&root, "Test");
@@ -423,10 +425,10 @@ mod integration_tests {
         let tokens = parse_aozora(text).expect("Tokenization failed");
 
         for (i, token) in tokens.iter().enumerate() {
-            if let AozoraToken::RubySeparator = token {
+            if let AozoraToken::RubySeparator(_) = token {
                 if i + 1 < tokens.len() {
                     match &tokens[i + 1] {
-                        AozoraToken::Newline => {
+                        AozoraToken::Newline(_) => {
                             println!("Found RubySeparator followed by Newline at index {}", i);
                             let start = if i > 10 { i - 10 } else { 0 };
                             let end = if i + 5 < tokens.len() {
@@ -451,18 +453,19 @@ mod integration_tests {
     fn test_midashi_html_structure() {
         // ［＃大見出し］見出し［＃大見出し終わり］
         let items = vec![
-            ParsedItem::Command(Command::CommandBegin(CommandBegin::Midashi(Midashi {
+            ParsedItem::Command { cmd: Command::CommandBegin(CommandBegin::Midashi(Midashi {
                 size: MidashiSize::Large,
                 kind: MidashiType::Normal,
-            }))),
+            })), span: crate::tokenizer::Span::new(0, 8) },
             ParsedItem::Text(DecoratedText {
                 text: "見出し".to_string(),
                 ruby: None,
+                span: crate::tokenizer::Span::new(8, 11),
             }),
-            ParsedItem::Command(Command::CommandEnd(CommandEnd::Midashi(Midashi {
+            ParsedItem::Command { cmd: Command::CommandEnd(CommandEnd::Midashi(Midashi {
                 size: MidashiSize::Large,
                 kind: MidashiType::Normal,
-            }))),
+            })), span: crate::tokenizer::Span::new(11, 22) },
         ];
         let root = parse_blocks(items).unwrap();
         let (html, toc) = XhtmlGenerator::generate(&root, "Test");

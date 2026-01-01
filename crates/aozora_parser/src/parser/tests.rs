@@ -1,15 +1,15 @@
 use super::*;
-use crate::tokenizer::{parse_aozora, TextKind, TextToken, AozoraToken};
+use crate::tokenizer::{parse_aozora, Span, TextKind, TextToken, AozoraToken};
 use std::fs;
 use std::path::PathBuf;
 use encoding_rs::SHIFT_JIS;
 
 fn with_metadata(tokens: Vec<AozoraToken>) -> Vec<AozoraToken> {
     let mut t = vec![
-        AozoraToken::Text(TextToken { content: "Title".to_string(), kind: TextKind::Other}),
-        AozoraToken::Newline,
-        AozoraToken::Text(TextToken { content: "Author".to_string(), kind: TextKind::Other}),
-        AozoraToken::Newline,
+        AozoraToken::Text(TextToken { content: "Title".to_string(), kind: TextKind::Other, span: Span::new(0, 5) }),
+        AozoraToken::Newline(Span::new(5, 6)),
+        AozoraToken::Text(TextToken { content: "Author".to_string(), kind: TextKind::Other, span: Span::new(6, 12) }),
+        AozoraToken::Newline(Span::new(12, 13)),
     ];
     t.extend(tokens);
     t
@@ -45,7 +45,7 @@ fn debug_hashigaki() {
 #[test]
 fn test_simple_text() {
     let tokens = vec![
-        AozoraToken::Text(TextToken { content: "こんにちは".to_string(), kind: TextKind::Hiragana }),
+        AozoraToken::Text(TextToken { content: "こんにちは".to_string(), kind: TextKind::Hiragana, span: Span::new(13, 18) }),
     ];
     let doc = parse(with_metadata(tokens)).unwrap();
     assert_eq!(doc.metadata.title, "Title");
@@ -63,8 +63,8 @@ fn test_simple_text() {
 fn test_ruby_no_separator() {
     // 漢字《かんじ》
     let tokens = vec![
-        AozoraToken::Text(TextToken { content: "漢字".to_string(), kind: TextKind::Kanji }),
-        AozoraToken::Ruby("かんじ".to_string()),
+        AozoraToken::Text(TextToken { content: "漢字".to_string(), kind: TextKind::Kanji, span: Span::new(13, 15) }),
+        AozoraToken::Ruby { content: "かんじ".to_string(), span: Span::new(15, 20) },
     ];
     let doc = parse(with_metadata(tokens)).unwrap();
     assert_eq!(doc.items.len(), 1);
@@ -80,10 +80,10 @@ fn test_ruby_no_separator() {
 fn test_ruby_with_separator() {
     // ｜ロンドン警視庁《スコットランドヤード》
     let tokens = vec![
-        AozoraToken::RubySeparator,
-        AozoraToken::Text(TextToken { content: "ロンドン".to_string(), kind: TextKind::Katakana }),
-        AozoraToken::Text(TextToken { content: "警視庁".to_string(), kind: TextKind::Kanji }),
-        AozoraToken::Ruby("スコットランドヤード".to_string()),
+        AozoraToken::RubySeparator(Span::new(13, 14)),
+        AozoraToken::Text(TextToken { content: "ロンドン".to_string(), kind: TextKind::Katakana, span: Span::new(14, 18) }),
+        AozoraToken::Text(TextToken { content: "警視庁".to_string(), kind: TextKind::Kanji, span: Span::new(18, 21) }),
+        AozoraToken::Ruby { content: "スコットランドヤード".to_string(), span: Span::new(21, 33) },
     ];
     let doc = parse(with_metadata(tokens)).unwrap();
     assert_eq!(doc.items.len(), 1);
@@ -99,10 +99,10 @@ fn test_ruby_with_separator() {
 fn test_ruby_with_separator_multiple_text() {
     // ｜青空文庫《あおぞらぶんこ》
     let tokens = vec![
-        AozoraToken::RubySeparator,
-        AozoraToken::Text(TextToken { content: "青空".to_string(), kind: TextKind::Kanji }),
-        AozoraToken::Text(TextToken { content: "文庫".to_string(), kind: TextKind::Kanji }),
-        AozoraToken::Ruby("あおぞらぶんこ".to_string()),
+        AozoraToken::RubySeparator(Span::new(13, 14)),
+        AozoraToken::Text(TextToken { content: "青空".to_string(), kind: TextKind::Kanji, span: Span::new(14, 16) }),
+        AozoraToken::Text(TextToken { content: "文庫".to_string(), kind: TextKind::Kanji, span: Span::new(16, 18) }),
+        AozoraToken::Ruby { content: "あおぞらぶんこ".to_string(), span: Span::new(18, 27) },
     ];
     let doc = parse(with_metadata(tokens)).unwrap();
     assert_eq!(doc.items.len(), 1);
@@ -118,8 +118,8 @@ fn test_ruby_with_separator_multiple_text() {
 fn test_mixed_text_flushing() {
     // こんにちは世界
     let tokens = vec![
-        AozoraToken::Text(TextToken { content: "こんにちは".to_string(), kind: TextKind::Hiragana }),
-        AozoraToken::Text(TextToken { content: "世界".to_string(), kind: TextKind::Kanji }),
+        AozoraToken::Text(TextToken { content: "こんにちは".to_string(), kind: TextKind::Hiragana, span: Span::new(13, 18) }),
+        AozoraToken::Text(TextToken { content: "世界".to_string(), kind: TextKind::Kanji, span: Span::new(18, 20) }),
     ];
     let doc = parse(with_metadata(tokens)).unwrap();
     assert_eq!(doc.items.len(), 1); 
@@ -135,21 +135,21 @@ fn test_mixed_text_flushing() {
 #[test]
 fn test_comment_block_skipping() {
     let tokens = vec![
-        AozoraToken::Text(TextToken { content: "Title".to_string(), kind: TextKind::Other}),
-        AozoraToken::Newline,
-        AozoraToken::Text(TextToken { content: "Author".to_string(), kind: TextKind::Other}),
-        AozoraToken::Newline,
+        AozoraToken::Text(TextToken { content: "Title".to_string(), kind: TextKind::Other, span: Span::new(0, 5) }),
+        AozoraToken::Newline(Span::new(5, 6)),
+        AozoraToken::Text(TextToken { content: "Author".to_string(), kind: TextKind::Other, span: Span::new(6, 12) }),
+        AozoraToken::Newline(Span::new(12, 13)),
         
         // Start comment block
-        AozoraToken::Text(TextToken { content: "-------------------------------------------------------".to_string(), kind: TextKind::Other}),
-        AozoraToken::Newline,
-        AozoraToken::Text(TextToken { content: "Comment Content".to_string(), kind: TextKind::Other}),
-        AozoraToken::Newline,
-        AozoraToken::Text(TextToken { content: "-------------------------------------------------------".to_string(), kind: TextKind::Other}),
-        AozoraToken::Newline,
+        AozoraToken::Text(TextToken { content: "-------------------------------------------------------".to_string(), kind: TextKind::Other, span: Span::new(13, 68) }),
+        AozoraToken::Newline(Span::new(68, 69)),
+        AozoraToken::Text(TextToken { content: "Comment Content".to_string(), kind: TextKind::Other, span: Span::new(69, 84) }),
+        AozoraToken::Newline(Span::new(84, 85)),
+        AozoraToken::Text(TextToken { content: "-------------------------------------------------------".to_string(), kind: TextKind::Other, span: Span::new(85, 140) }),
+        AozoraToken::Newline(Span::new(140, 141)),
         // End comment block
 
-        AozoraToken::Text(TextToken { content: "Body Content".to_string(), kind: TextKind::Other}),
+        AozoraToken::Text(TextToken { content: "Body Content".to_string(), kind: TextKind::Other, span: Span::new(141, 153) }),
     ];
     
     // Pass tokens directly as they include metadata lines
@@ -159,10 +159,7 @@ fn test_comment_block_skipping() {
     assert_eq!(doc.metadata.author, "Author");
     // Comment block should be skipped. 
     // We expect "Body Content".
-    // Note: The newline after second separator might be consumed or appearing as Newline item depending on implementation.
-    // My implementation: "Usually separator line ends with newline... If we are just switching state, the newline after this separator will be parsed as Newline item. Maybe we want to consume it?"
-    // In my code: "if let Some(AozoraToken::Newline) = tokens_iter.peek() { tokens_iter.next(); }"
-    // So the newline after the closing separator is consumed.
+    // The newline after the closing separator is consumed.
     
     assert_eq!(doc.items.len(), 1);
     if let ParsedItem::Text(t) = &doc.items[0] {
@@ -184,7 +181,7 @@ fn debug_outou_block_parse() {
     
     // Print out CommandBegin/End items to debug
     for (i, item) in doc.items.iter().enumerate() {
-        if let ParsedItem::Command(cmd) = item {
+        if let ParsedItem::Command { cmd, .. } = item {
             match cmd {
                 crate::tokenizer::command::Command::CommandBegin(b) => {
                     println!("Item {}: CommandBegin({:?})", i, b);

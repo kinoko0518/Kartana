@@ -1,11 +1,12 @@
 use itertools::Itertools;
 
-use crate::tokenizer::{self, AozoraToken, CommandToken, TextToken};
+use crate::tokenizer::{self, AozoraToken, CommandToken, Span, TextToken};
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct DecoratedText {
     pub text: String,
     pub ruby: Option<String>,
+    pub span: Span,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -17,14 +18,14 @@ pub enum SpecialCharacter {
 #[derive(Debug, PartialEq, Clone)]
 pub enum ParsedItem {
     Text(DecoratedText),
-    Command(crate::tokenizer::command::Command),
-    Newline,
-    SpecialCharacter(SpecialCharacter),
+    Command { cmd: crate::tokenizer::command::Command, span: Span },
+    Newline(Span),
+    SpecialCharacter { kind: SpecialCharacter, span: Span },
 }
 
 #[derive(Debug, Clone)]
 pub enum ParseError {
-    UnexpectedToken(AozoraToken),
+    UnexpectedToken { token: AozoraToken, span: Span },
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -47,7 +48,7 @@ pub fn parse(tokens: Vec<AozoraToken>) -> Result<AozoraDocument, ParseError> {
         let mut line = String::new();
         while let Some(token) = tokens_iter.peek() {
             match token {
-                AozoraToken::Newline => {
+                AozoraToken::Newline(_) => {
                      // Consume newline and break
                      tokens_iter.next(); 
                      break;
@@ -56,19 +57,12 @@ pub fn parse(tokens: Vec<AozoraToken>) -> Result<AozoraDocument, ParseError> {
                     line.push_str(&t.content);
                     tokens_iter.next();
                 }
-                AozoraToken::Ruby(r) => {
-                    // Start consuming ruby
-                    // Just append ruby text for metadata? 
-                    // Or ignore? Usually titles don't have ruby, but if they do, 
-                    // represent as "Text(Ruby)"?
-                    // For simplicitly, let's append ruby content in parens or just content?
-                    // User requirement: "0 lines is Title".
-                    // Let's just discard ruby structure and keep text.
+                AozoraToken::Ruby { content: _, span: _ } => {
+                    // For metadata, just discard ruby structure
                     tokens_iter.next();
                 }
                  _ => {
-                    // Command, etc. Ignore for metadata string or stringify?
-                    // Safe to skip for now 
+                    // Command, etc. Ignore for metadata string
                     tokens_iter.next();
                 }
             }
@@ -82,23 +76,28 @@ pub fn parse(tokens: Vec<AozoraToken>) -> Result<AozoraDocument, ParseError> {
     let mut parsed_items: Vec<ParsedItem> = Vec::new();
     let mut ruby_buffer: Vec<TextToken> = Vec::new();
 
+    // Helper to calculate span from ruby_buffer
+    fn buffer_span(buffer: &[TextToken]) -> Span {
+        if buffer.is_empty() {
+            Span::default()
+        } else {
+            let start = buffer.first().unwrap().span.start;
+            let end = buffer.last().unwrap().span.end;
+            Span::new(start, end)
+        }
+    }
+
     // Loop through remaining tokens
     let mut in_comment_block = false;
 
     while let Some(token) = tokens_iter.next() {
         if in_comment_block {
              // Check if this line is a separator to end the block
-             // A separator is usually "-------------------------------------------------------"
              match token {
                  AozoraToken::Text(t) => {
                      if t.content.contains("-------------------------------------------------------") {
                          in_comment_block = false;
-                         // Consume following newline if present for cleanliness?
-                         // The parser loop will handle next newline as usual Item::Newline
-                         // But usually separator line ends with newline.
-                         // If we are just switching state, the newline after this separator will be parsed as Newline item.
-                         // Maybe we want to consume it?
-                         if let Some(AozoraToken::Newline) = tokens_iter.peek() {
+                         if let Some(AozoraToken::Newline(_)) = tokens_iter.peek() {
                              tokens_iter.next();
                          }
                      }
@@ -113,28 +112,31 @@ pub fn parse(tokens: Vec<AozoraToken>) -> Result<AozoraDocument, ParseError> {
                  // Check if this starts a comment block
                  if t.content.contains("-------------------------------------------------------") {
                      in_comment_block = true;
-                     // Flush buffer?
+                     // Flush buffer
                      if !ruby_buffer.is_empty() {
+                         let span = buffer_span(&ruby_buffer);
                          parsed_items.push(ParsedItem::Text(DecoratedText {
                             text: ruby_buffer.iter().map(|t| t.content.clone()).join(""),
                             ruby: None,
+                            span,
                         }));
                         ruby_buffer.clear();
                      }
-                     // Skip following newline?
-                     if let Some(AozoraToken::Newline) = tokens_iter.peek() {
+                     if let Some(AozoraToken::Newline(_)) = tokens_iter.peek() {
                          tokens_iter.next();
                      }
                      continue;
                  }
                 ruby_buffer.push(t.clone());
             }
-            AozoraToken::RubySeparator => {
+            AozoraToken::RubySeparator(sep_span) => {
                 // Flush existing buffer first, as | starts a new specific block
                 if !ruby_buffer.is_empty() {
+                    let span = buffer_span(&ruby_buffer);
                     parsed_items.push(ParsedItem::Text(DecoratedText {
                         text: ruby_buffer.iter().map(|t| t.content.clone()).join(""),
                         ruby: None,
+                        span,
                     }));
                     ruby_buffer.clear();
                 }
@@ -144,76 +146,92 @@ pub fn parse(tokens: Vec<AozoraToken>) -> Result<AozoraDocument, ParseError> {
                 
                 while let Some(token2) = tokens_iter.peek() {
                     match token2 {
-                        AozoraToken::Ruby(r) => {
+                        AozoraToken::Ruby { content, span: ruby_span } => {
                             // Success
-                            let r_content = r.clone();
+                            let r_content = content.clone();
+                            let r_span = *ruby_span;
                             tokens_iter.next(); // Consume Ruby
+                            
+                            let text_span = if temp_buffer.is_empty() {
+                                *sep_span
+                            } else {
+                                sep_span.merge(&buffer_span(&temp_buffer))
+                            };
+                            let full_span = text_span.merge(&r_span);
                             
                             parsed_items.push(ParsedItem::Text(DecoratedText {
                                 text: temp_buffer.iter().map(|t| t.content.clone()).join(""),
                                 ruby: Some(r_content),
+                                span: full_span,
                             }));
                             valid_ruby = true;
                             break;
                         }
                         AozoraToken::Text(t) => {
-                            temp_buffer.push(t.clone());
+                            temp_buffer.push((*t).clone());
                             tokens_iter.next(); // Consume Text
                         }
                         _ => {
                             // Unexpected token (Newline, Command, etc.)
-                            // Abort Ruby block
                             break;
                         }
                     }
                 }
                 
                 if !valid_ruby {
-                    // Treat | as literal text and flush temp buffer
+                    // Treat | as literal text
                     parsed_items.push(ParsedItem::Text(DecoratedText {
                         text: "｜".to_string(),
                         ruby: None,
+                        span: *sep_span,
                     }));
                     
                     if !temp_buffer.is_empty() {
-                         parsed_items.push(ParsedItem::Text(DecoratedText {
+                        let span = buffer_span(&temp_buffer);
+                        parsed_items.push(ParsedItem::Text(DecoratedText {
                             text: temp_buffer.iter().map(|t| t.content.clone()).join(""),
                             ruby: None,
+                            span,
                         }));
                     }
-                    // The unexpected token is still next in iterator (we peeked), so outer loop will handle it.
                 }
             }
-            AozoraToken::Ruby(r) => {
+            AozoraToken::Ruby { content, span: ruby_span } => {
                 // Ruby without separator applies to the last text token in buffer
                 if let Some(last_text) = ruby_buffer.pop() {
-                     // Flush any previous tokens in buffer as separate DecoratedText without ruby
+                     // Flush any previous tokens in buffer
                      if !ruby_buffer.is_empty() {
+                         let span = buffer_span(&ruby_buffer);
                          parsed_items.push(ParsedItem::Text(DecoratedText {
                              text: ruby_buffer.iter().map(|t| t.content.clone()).join(""),
                              ruby: None,
+                             span,
                          }));
                          ruby_buffer.clear();
                      }
                      
                      // Push the last token with ruby
+                     let full_span = last_text.span.merge(ruby_span);
                      parsed_items.push(ParsedItem::Text(DecoratedText {
                         text: last_text.content.clone(),
-                        ruby: Some(r.clone()),
+                        ruby: Some(content.clone()),
+                        span: full_span,
                     }));
                 } else {
-                    if r.is_empty() {
+                    // Ruby without text - will be detected by Linter
+                    if content.is_empty() {
                         continue;
                     }
-                    eprintln!("Warning: Ruby found without preceding text: {:?}", r);
                 }
             }
             AozoraToken::Command(c) => {
                 // Flush buffer
                 if !ruby_buffer.is_empty() {
+                    let span = buffer_span(&ruby_buffer);
                     parsed_items.push(ParsedItem::Text(DecoratedText {
                         text: ruby_buffer.iter().map(|t| t.content.clone()).join(""),
                         ruby: None,
+                        span,
                     }));
                     ruby_buffer.clear();
                 }
@@ -226,70 +244,85 @@ pub fn parse(tokens: Vec<AozoraToken>) -> Result<AozoraDocument, ParseError> {
                         if let Some(ParsedItem::Text(dt)) = parsed_items.last() {
                             if dt.text == *content {
                                 // Match found! Convert to block.
-                                let text_item = parsed_items.pop().unwrap(); // Remove pure text
+                                let text_item = parsed_items.pop().unwrap();
+                                let text_span = if let ParsedItem::Text(dt) = &text_item {
+                                    dt.span
+                                } else {
+                                    Span::default()
+                                };
                                 
-                                parsed_items.push(ParsedItem::Command(
-                                    crate::tokenizer::command::Command::CommandBegin(
+                                parsed_items.push(ParsedItem::Command {
+                                    cmd: crate::tokenizer::command::Command::CommandBegin(
                                         crate::tokenizer::command::CommandBegin::Midashi(m.clone())
-                                    )
-                                ));
+                                    ),
+                                    span: text_span,
+                                });
                                 parsed_items.push(text_item);
-                                parsed_items.push(ParsedItem::Command(
-                                    crate::tokenizer::command::Command::CommandEnd(
+                                parsed_items.push(ParsedItem::Command {
+                                    cmd: crate::tokenizer::command::Command::CommandEnd(
                                         crate::tokenizer::command::CommandEnd::Midashi(m.clone())
-                                    )
-                                ));
+                                    ),
+                                    span: c.span,
+                                });
                                 merged = true;
                             }
                         }
                     }
 
                     if !merged {
-                        parsed_items.push(ParsedItem::Command(cmd));
+                        parsed_items.push(ParsedItem::Command { cmd, span: c.span });
                     }
                 }
             }
-             AozoraToken::Newline => {
+             AozoraToken::Newline(span) => {
                 // Flush buffer
                 if !ruby_buffer.is_empty() {
+                    let buf_span = buffer_span(&ruby_buffer);
                     parsed_items.push(ParsedItem::Text(DecoratedText {
                         text: ruby_buffer.iter().map(|t| t.content.clone()).join(""),
                         ruby: None,
+                        span: buf_span,
                     }));
                     ruby_buffer.clear();
                 }
-                parsed_items.push(ParsedItem::Newline);
+                parsed_items.push(ParsedItem::Newline(*span));
             }
-            AozoraToken::Odoriji => {
+            AozoraToken::Odoriji(span) => {
                  // Flush buffer
                 if !ruby_buffer.is_empty() {
+                    let buf_span = buffer_span(&ruby_buffer);
                     parsed_items.push(ParsedItem::Text(DecoratedText {
                         text: ruby_buffer.iter().map(|t| t.content.clone()).join(""),
                         ruby: None,
+                        span: buf_span,
                     }));
                     ruby_buffer.clear();
                 }
-                parsed_items.push(ParsedItem::SpecialCharacter(SpecialCharacter::Odoriji));
+                parsed_items.push(ParsedItem::SpecialCharacter { kind: SpecialCharacter::Odoriji, span: *span });
             }
-            AozoraToken::DakutenOdoriji => {
+            AozoraToken::DakutenOdoriji(span) => {
                  // Flush buffer
                 if !ruby_buffer.is_empty() {
+                    let buf_span = buffer_span(&ruby_buffer);
                     parsed_items.push(ParsedItem::Text(DecoratedText {
                         text: ruby_buffer.iter().map(|t| t.content.clone()).join(""),
                         ruby: None,
+                        span: buf_span,
                     }));
                     ruby_buffer.clear();
                 }
-                parsed_items.push(ParsedItem::SpecialCharacter(SpecialCharacter::DakutenOdoriji));
+                parsed_items.push(ParsedItem::SpecialCharacter { kind: SpecialCharacter::DakutenOdoriji, span: *span });
             }
         }
     }
     
     // Final flush
     if !ruby_buffer.is_empty() {
+        let span = buffer_span(&ruby_buffer);
         parsed_items.push(ParsedItem::Text(DecoratedText {
             text: ruby_buffer.iter().map(|t| t.content.clone()).join(""),
             ruby: None,
+            span,
         }));
     }
 

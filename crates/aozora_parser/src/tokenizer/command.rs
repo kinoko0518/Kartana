@@ -262,12 +262,13 @@ pub fn parse_command(commands: CommandToken) -> Option<Command> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tokenizer::CommandToken;
+    use crate::tokenizer::{CommandToken, Span};
 
     #[test]
     fn test_midashi_ref() {
         let token = CommandToken {
             content: "「独り寝の別れ」は大見出し".to_string(),
+            span: Span::default(),
         };
         let cmd = parse_command(token).unwrap();
         match cmd {
@@ -281,6 +282,7 @@ mod tests {
 
         let token = CommandToken {
             content: "「入藏を思ひ立ツた原因」は同行中見出し".to_string(),
+            span: Span::default(),
         };
         let cmd = parse_command(token).unwrap();
         match cmd {
@@ -294,6 +296,7 @@ mod tests {
         
         let token = CommandToken {
             content: "「青空文庫」は窓中見出し".to_string(),
+            span: Span::default(),
         };
         let cmd = parse_command(token).unwrap();
         match cmd {
@@ -310,6 +313,7 @@ mod tests {
     fn test_midashi_begin() {
         let token = CommandToken {
             content: "大見出し".to_string(),
+            span: Span::default(),
         };
         let cmd = parse_command(token).unwrap();
         match cmd {
@@ -322,6 +326,7 @@ mod tests {
 
         let token = CommandToken {
             content: "同行小見出し".to_string(),
+            span: Span::default(),
         };
         let cmd = parse_command(token).unwrap();
         match cmd {
@@ -334,6 +339,7 @@ mod tests {
 
         let token = CommandToken {
             content: "ここから窓中見出し".to_string(),
+            span: Span::default(),
         };
         let cmd = parse_command(token).unwrap();
         match cmd {
@@ -349,6 +355,7 @@ mod tests {
     fn test_midashi_end() {
         let token = CommandToken {
             content: "大見出し終わり".to_string(),
+            span: Span::default(),
         };
         let cmd = parse_command(token).unwrap();
         match cmd {
@@ -361,6 +368,7 @@ mod tests {
 
         let token = CommandToken {
             content: "ここで窓中見出し終わり".to_string(),
+            span: Span::default(),
         };
         let cmd = parse_command(token).unwrap();
         match cmd {
@@ -376,6 +384,7 @@ mod tests {
     fn test_jisage() {
         let token = CommandToken {
             content: "１字下げ".to_string(),
+            span: Span::default(),
         };
         let cmd = parse_command(token).unwrap();
         match cmd {
@@ -388,6 +397,7 @@ mod tests {
 
         let token = CommandToken {
             content: "ここから１０字下げ".to_string(),
+            span: Span::default(),
         };
         let cmd = parse_command(token).unwrap();
         match cmd {

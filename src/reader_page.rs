@@ -25,9 +25,9 @@ pub fn Reader(series_title: String, chapter_title: String) -> Element {
                 let (cow, _, _) = SHIFT_JIS.decode(&bytes);
                 let text = cow.into_owned();
                 
-                // Call text_to_xhtml which now returns (xhtml, toc, metadata)
+                // Call text_to_xhtml which now returns XhtmlOutput struct
                 match aozora_parser::text_to_xhtml(text) {
-                    Ok((xhtml, _, metadata)) => {
+                    Ok(output) => {
                         // Inject CSS
                         let css = aozora_parser::default_css();
                         let default_style_tag = format!("<style>{}</style>", css);
@@ -43,13 +43,13 @@ pub fn Reader(series_title: String, chapter_title: String) -> Element {
                         let replacement = format!("{}{}", default_style_tag, custom_style_tag);
 
                         // Replace the external link with inline style + link to reader.css
-                        let final_xhtml = xhtml.replace(
+                        let final_xhtml = output.xhtml.replace(
                             r#"<link rel="stylesheet" type="text/css" href="../style/book-style.css"/>"#, 
                             &replacement
                         );
                         
                         xhtml_content.set(final_xhtml);
-                        author_name.set(metadata.author);
+                        author_name.set(output.metadata.author);
                     },
                     Err(_) => {
                         xhtml_content.set("Error parsing Aozora text.".to_string());
