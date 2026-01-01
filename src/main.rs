@@ -1,11 +1,10 @@
 mod decoration;
-mod editor_page;
-mod rich_editor;
+mod editor;
 mod top_page;
 mod reader_page;
 
 use dioxus::prelude::*;
-use editor_page::Editor;
+use editor::page::Editor;
 use top_page::Top;
 use reader_page::Reader;
 
