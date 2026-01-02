@@ -52,17 +52,18 @@ jobs:
         run: |
           echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
+      - name: Install Dioxus CLI
+        run: cargo install dioxus-cli --version 0.6.0
+
       - name: Build
-        run: cargo build --release --verbose
+        run: dx bundle --release --platform desktop --verbose
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: Kartana-${{ steps.vars.outputs.sha_short }}-${{ runner.os }}
-          path: |
-            target/release/${{ env.CRATE_NAME }}
-            target/release/${{ env.CRATE_NAME }}.exe
-          if-no-files-found: ignore
+          path: target/dx/${{ env.CRATE_NAME }}/release/**/app/*
+          if-no-files-found: warn
 
   release:
     name: Create Release
