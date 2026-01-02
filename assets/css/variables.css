@@ -1,12 +1,51 @@
 :root {
-    --background: #29252c;
-    --border-color: #ffffff0f;
-    --background-light: #2c2830;
-    --text-information: #c4c4c4;
-    --text-primary: #ffffff;
-    --danger-color: #ff4d4d;
+    /* --- primitive colors --- */
+    --color-base-bg: #29252c;
+    --color-surface-bg: #2c2830;
+    --color-overlay-bg: rgba(0, 0, 0, 0.5);
+
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #c4c4c4;
+
+    --color-border-subtle: #ffffff0f;
+    --color-danger: #ff4d4d;
+    --color-danger-hover: #cc0000;
+
+    /* --- Spacing System --- */
+    --space-xs: 0.5rem;
+    /* 8px */
+    --space-sm: 1rem;
+    /* 16px */
+    --space-md: 1.5rem;
+    /* 24px - Standard Card Padding */
+    --space-lg: 2rem;
+    /* 32px */
+    --space-xl: 3rem;
+
+    /* --- Radius System --- */
+    --radius-sm: 0.5rem;
+    /* 8px - For small buttons/inputs */
+    --radius-md: 1rem;
+    /* 16px - For larger inputs/internal containers */
+    --radius-lg: 1.5rem;
+    /* 24px - Standard Card & Modal Radius */
+
+    /* --- Aliases/Compat --- */
+    --background: var(--color-base-bg);
+    --background-light: var(--color-surface-bg);
+    --border-color: var(--color-border-subtle);
+    --text-information: var(--color-text-secondary);
+    --text-primary: var(--color-text-primary);
+    --danger-color: var(--color-danger);
+
     --card-width: 300px;
     --card-height: 180px;
-    --card-padding: 1.5rem;
-    --card-radius: 1.5rem;
+    --card-padding: var(--space-md);
+    --card-radius: var(--radius-lg);
+
+    /* --- Typography System --- */
+    --font-novel: "EB Garamond", "Harano Aji Mincho", "Harano Aji Mincho Regular", serif;
+    --line-height-novel: 1.9;
+    --letter-spacing-novel: 0.04em;
+    --font-feature-palt: "palt";
 }

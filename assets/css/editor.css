@@ -15,18 +15,18 @@
 .editor_header {
     display: flex;
     align-items: center;
-    padding: 0 20px;
+    padding: 0 var(--space-md);
     height: 50px;
     background-color: var(--background-light);
     border-bottom: 1px solid var(--border-color);
-    gap: 20px;
+    gap: var(--space-md);
 }
 
 .editor_content {
     flex-grow: 1;
     display: flex;
     justify-content: center;
-    padding: 20px;
+    padding: var(--space-md);
     overflow: hidden;
 }
 
@@ -53,10 +53,17 @@
     resize: none;
     border: none;
     outline: none;
-    padding: 10px;
-    font-family: 'HaranoAjiMincho';
+    padding: var(--space-sm);
+    font-family: var(--font-novel);
     font-size: 1.1rem;
-    line-height: 1.8;
+    line-height: var(--line-height-novel);
     background-color: var(--background);
     color: var(--text-information);
+
+    text-align: justify;
+    text-justify: inter-ideograph;
+    font-feature-settings: var(--font-feature-palt);
+    letter-spacing: var(--letter-spacing-novel);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }

@@ -63,6 +63,15 @@ html.vrtl body {
     color: var(--text-primary);
     height: 100%;
     background-color: var(--background);
+
+    font-family: var(--font-novel);
+    line-height: var(--line-height-novel);
+    text-align: justify;
+    text-justify: inter-ideograph;
+    font-feature-settings: var(--font-feature-palt);
+    letter-spacing: var(--letter-spacing-novel);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 html.vrtl .main {

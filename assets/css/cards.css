@@ -41,7 +41,7 @@
 
 .series_actions {
     display: flex;
-    gap: 15px;
+    gap: var(--space-sm);
     width: 100%;
     justify-content: flex-end;
 }

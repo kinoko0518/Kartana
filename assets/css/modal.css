@@ -14,8 +14,8 @@
 
 .modal_content {
     background-color: var(--background);
-    padding: 30px;
-    border-radius: 10px;
+    padding: var(--space-lg);
+    border-radius: var(--radius-lg);
     border: 1px solid var(--border-color);
     text-align: center;
     min-width: 300px;
