@@ -11,8 +11,8 @@
     display: flex;
     align-items: center;
     padding: 10px;
-    background-color: var(--surface-card);
-    border-bottom: 1px solid var(--border-neutral);
+    background-color: var(--background-light);
+    border-bottom: 1px solid var(--border-color);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     width: 100%;
     box-sizing: border-box;
@@ -26,7 +26,7 @@
 
 .series_info {
     font-size: 0.8rem;
-    color: var(--text-secondary);
+    color: var(--text-information);
 }
 
 .chapter_title_display {
@@ -60,34 +60,12 @@ html.vrtl {
 }
 
 html.vrtl body {
-    color: #f0f0f0;
+    color: var(--text-primary);
     height: 100%;
+    background-color: var(--background);
 }
 
 html.vrtl .main {
     height: calc(100% - 2em);
     box-sizing: border-box;
-}
-
-/* Custom Scrollbar (Matched with Editor) */
-html.vrtl ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-}
-
-html.vrtl ::-webkit-scrollbar-track {
-    background-color: transparent;
-}
-
-html.vrtl ::-webkit-scrollbar-thumb {
-    background-color: #ffffff05;
-    border-radius: 10px;
-}
-
-html.vrtl ::-webkit-scrollbar-thumb:hover {
-    background-color: #ffffff1f;
-}
-
-html.vrtl ::-webkit-scrollbar-corner {
-    background-color: transparent;
 }

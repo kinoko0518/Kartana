@@ -1,10 +1,11 @@
-mod decoration;
+
+
 mod editor;
 mod top_page;
 mod reader_page;
 
 use dioxus::prelude::*;
-use editor::page::Editor;
+use editor::Editor;
 use top_page::Top;
 use reader_page::Reader;
 
@@ -20,6 +21,7 @@ enum Route {
 }
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");
+const HARANO_FONT: Asset = asset!("/assets/fonts/HaranoAjiMincho-Regular.otf");
 const VARIABLES_CSS: Asset = asset!("/assets/css/variables.css");
 const BASE_CSS: Asset = asset!("/assets/css/base.css");
 const LAYOUT_CSS: Asset = asset!("/assets/css/layout.css");
@@ -39,6 +41,15 @@ fn main() {
 fn App() -> Element {
     rsx! {
         document::Link { rel: "icon", href: FAVICON }
+        // Inject font-face dynamically to handle asset bundling correctly
+        style {
+            "
+            @font-face {{
+                font-family: 'HaranoAjiMincho';
+                src: url('{HARANO_FONT}') format('opentype');
+            }}
+            "
+        }
         document::Link { rel: "stylesheet", href: VARIABLES_CSS }
         document::Link { rel: "stylesheet", href: BASE_CSS }
         document::Link { rel: "stylesheet", href: LAYOUT_CSS }

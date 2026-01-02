@@ -34,5 +34,6 @@
 }
 
 .form_actions button.danger:hover {
-    background-color: #ff3333;
+    background-color: #cc0000;
+    /* Darker shade of red */
 }

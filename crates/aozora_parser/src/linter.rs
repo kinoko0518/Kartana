@@ -300,3 +300,4 @@ mod tests {
         assert!(excl_warnings.is_empty());
     }
 }
+

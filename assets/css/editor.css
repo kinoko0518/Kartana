@@ -1,8 +1,3 @@
-@font-face {
-    font-family: 'HaranoAjiMincho';
-    src: url('/assets/fonts/HaranoAjiMincho-Regular.otf') format('opentype');
-}
-
 .editor_layout {
     position: fixed;
     top: 0;
@@ -27,87 +22,6 @@
     gap: 20px;
 }
 
-.back_button {
-    background: none;
-    border: none;
-    color: var(--text-information);
-    cursor: pointer;
-    font-size: 1.2rem;
-    display: flex;
-    align-items: center;
-    transition: color 0.2s;
-}
-
-.back_button:hover {
-    color: var(--text-primary);
-}
-
-.menu_bar {
-    display: flex;
-    gap: 20px;
-}
-
-.menu_item {
-    color: var(--text-information);
-    cursor: pointer;
-    font-size: 0.9rem;
-    padding: 5px 10px;
-    border-radius: 4px;
-    transition: background-color 0.2s, color 0.2s;
-    position: relative;
-}
-
-.menu_item:hover,
-.menu_item.active {
-    background-color: var(--background);
-    color: var(--text-primary);
-}
-
-.ribbon_container {
-    background-color: var(--background-light);
-    border-bottom: 1px solid var(--border-color);
-    padding: 10px 20px;
-    height: 40px;
-    /* Fixed height for consistency */
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.ribbon_button {
-    background-color: transparent;
-    border: 1px solid transparent;
-    color: var(--text-information);
-    padding: 5px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.2s;
-}
-
-.ribbon_button:hover {
-    background-color: var(--background);
-    color: var(--text-primary);
-    border-color: var(--border-color);
-}
-
-/* For future dropdown implementation */
-.menu_dropdown {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    background-color: var(--background-light);
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    min-width: 150px;
-    z-index: 100;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-}
-
-/* Simple visible state for now if we were to implement hover */
-/* .menu_item:hover .menu_dropdown { display: block; } */
-
 .editor_content {
     flex-grow: 1;
     display: flex;
@@ -124,157 +38,25 @@
     flex-direction: column;
 }
 
-.main_editor {
+/* =========================================
+   Simple Editor Styles
+   ========================================= */
+
+.simple_editor_container {
     width: 100%;
     height: 100%;
-    background-color: transparent;
-    border: none;
-    background-color: transparent;
-    border: none;
-    color: var(--text-primary);
-    font-family: 'HaranoAjiMincho', serif;
-    font-size: 1.1rem;
-    line-height: 1.8;
+}
+
+.simple_editor_textarea {
+    width: 100%;
+    height: 100%;
     resize: none;
+    border: none;
     outline: none;
-}
-
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-}
-
-::-webkit-scrollbar-track {
-    background-color: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-    background-color: #ffffff05;
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background-color: #ffffff1f;
-}
-
-::-webkit-scrollbar-corner {
-    background-color: transparent;
-}
-
-/* =========================================
-   Rich Editor Styles
-   ========================================= */
-
-.rich_editor_container {
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-}
-
-.rich_editor {
-    width: 100%;
-    min-height: 100%;
-    background-color: transparent;
-    color: var(--text-primary);
-    font-family: 'HaranoAjiMincho', serif;
+    padding: 10px;
+    font-family: 'HaranoAjiMincho';
     font-size: 1.1rem;
     line-height: 1.8;
-    outline: none;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    padding: 0;
-}
-
-.rich_editor:empty::before {
-    content: "ここに入力...";
+    background-color: var(--background);
     color: var(--text-information);
-    opacity: 0.6;
-}
-
-/* =========================================
-   Syntax Highlighting Decorations
-   ========================================= */
-
-/* Commands: ［＃...］ */
-.deco-command {
-    color: #c586c0;
-    background-color: rgba(197, 134, 192, 0.1);
-    border-radius: 2px;
-}
-
-/* Ruby (furigana): 《...》 */
-.deco-ruby {
-    color: #4ec9b0;
-}
-
-/* Ruby separator: ｜ */
-.deco-ruby-sep {
-    color: #569cd6;
-    font-weight: bold;
-}
-
-/* Kanji characters */
-.deco-kanji {
-    /* Kanji have no special styling - inherits default */
-    color: inherit;
-}
-
-/* Hiragana characters */
-.deco-hiragana {
-    /* Hiragana have no special styling - inherits default */
-    color: inherit;
-}
-
-/* Katakana characters */
-.deco-katakana {
-    /* Katakana have no special styling - inherits default */
-    color: inherit;
-}
-
-/* =========================================
-   Lint Decorations
-   ========================================= */
-
-/* Error: Red wavy underline */
-.deco-lint-error {
-    text-decoration: underline wavy #f44747;
-    text-underline-offset: 3px;
-}
-
-/* Warning: Yellow wavy underline */
-.deco-lint-warning {
-    text-decoration: underline wavy #cca700;
-    text-underline-offset: 3px;
-}
-
-/* Info: Blue wavy underline */
-.deco-lint-info {
-    text-decoration: underline wavy #3794ff;
-    text-underline-offset: 3px;
-}
-
-/* Hover tooltip for lint messages */
-.deco-lint-error[title],
-.deco-lint-warning[title],
-.deco-lint-info[title] {
-    cursor: help;
-    position: relative;
-}
-
-/* =========================================
-   Combined Decoration Styles
-   ========================================= */
-
-/* When syntax and lint overlap */
-.deco-command.deco-lint-warning,
-.deco-ruby.deco-lint-warning {
-    text-decoration: underline wavy #cca700;
-    text-underline-offset: 3px;
-}
-
-.deco-command.deco-lint-error,
-.deco-ruby.deco-lint-error {
-    text-decoration: underline wavy #f44747;
-    text-underline-offset: 3px;
 }

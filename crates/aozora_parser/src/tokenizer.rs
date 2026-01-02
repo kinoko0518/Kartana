@@ -1,7 +1,5 @@
 pub mod command;
 
-use itertools::Itertools;
-
 fn is_hiragana(c: char) -> bool {
     (0x3040 <= (c as u32)) && ((c as u32) <= 0x309F)
 }
@@ -164,43 +162,32 @@ pub fn parse_aozora(text: String) -> Result<Vec<AozoraToken>, TokenizeError> {
                     }
                 }
             }
-            '［' => {
+            '［' if chars.get(pos + 1) == Some(&'＃') => {
                 let start = pos;
-                // Check for command starter '＃'
-                if chars.get(pos + 1) == Some(&'＃') {
-                    pos += 2; // Consume '［＃'
-                    let mut buffer = String::new();
-                    loop {
-                        if pos < chars.len() {
-                            let c = chars[pos];
-                            pos += 1;
-                            if c == '］' {
-                                tokens.push(AozoraToken::Command(CommandToken {
-                                    content: buffer,
-                                    span: Span::new(start, pos),
-                                }));
-                                break;
-                            } else {
-                                buffer.push(c);
-                            }
-                        } else {
+                // '［'と'＃'を消費
+                pos += 2;
+                let mut buffer = String::new();
+                loop {
+                    let c = chars.get(pos);
+                    match c {
+                        Some(&'］') => {
+                            tokens.push(AozoraToken::Command(CommandToken {
+                                content: buffer,
+                                span: Span::new(start, pos),
+                            }));
+                            break;
+                        }
+                        c if c.is_none() | c.is_some_and(|c| (*c).is_whitespace()) => {
+                            // ルビに空白文字は入り得ないため、
+                            // 閉じられなかったと判定する
                             return Err(TokenizeError::UnclosedCommand(Span::new(start, pos)));
                         }
+                        otherwise => {
+                            // is_noneでotherwiseがNoneでないことは確認済み
+                            buffer.push(*otherwise.unwrap());
+                        }
                     }
-                } else {
-                    // Just a '［', treat as Other text
-                    let mut buffer = String::new();
-                    buffer.push('［');
                     pos += 1;
-                    while pos < chars.len() && is_other(chars[pos]) {
-                        buffer.push(chars[pos]);
-                        pos += 1;
-                    }
-                    tokens.push(AozoraToken::Text(TextToken {
-                        content: buffer,
-                        kind: TextKind::Other,
-                        span: Span::new(start, pos),
-                    }));
                 }
             }
             c if is_kanji(c) => {

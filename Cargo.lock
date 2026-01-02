@@ -2626,7 +2626,6 @@ dependencies = [
  "dioxus",
  "encoding_rs",
  "itertools",
- "regex",
  "serde",
  "toml 0.9.10+spec-1.1.0",
  "uuid",
