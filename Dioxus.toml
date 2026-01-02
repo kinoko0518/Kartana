@@ -1,5 +1,15 @@
 [application]
 name = "kartana"
+default_platform = "desktop"
+
+[bundle]
+identifier = "io.github.kinoko0518.kartana"
+publisher = "kinoko0518"
+icon = ["assets/favicon.ico"]
+copyright = "2023 kinoko0518"
+category = "Utility"
+short_description = "Aozora Bunko Reader and Editor"
+long_description = "A modern desktop application for reading and editing Aozora Bunko formatted text."
 
 [web.app]
 
