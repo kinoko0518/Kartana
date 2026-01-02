@@ -5,9 +5,9 @@ use std::fs;
 use std::path::PathBuf;
 
 const BACK_ICON: Asset = asset!("/assets/icons/back.svg");
+const PREVIEW_ICON: Asset = asset!("/assets/icons/read.svg");
 
 // --- Hook: use_editor_file ---
-
 #[derive(Clone, Copy, PartialEq)]
 pub struct UseEditorFile {
     pub content: Signal<String>,
@@ -99,6 +99,13 @@ pub fn Editor(series_title: String, chapter_title: String) -> Element {
         file.content.set(new_text);
     };
 
+    let st = series_title.clone();
+    let ct = chapter_title.clone();
+    let handle_preview = move |_| {
+        file.save();
+        navigator.push(format!("/reader/{}/{}", st, ct));
+    };
+
     // Keybinding Handler
     let handle_keydown = move |evt: KeyboardEvent| {
         let key = evt.key();
@@ -126,9 +133,9 @@ pub fn Editor(series_title: String, chapter_title: String) -> Element {
                     style: "margin-left: auto; color: var(--text-information); font-size: 0.9rem;",
                     "{series_title} - {chapter_title}"
                 }
-                div {
-                    style: "margin-left: 10px; color: var(--text-label); font-size: 0.8rem;",
-                    "{file.status}"
+                ActionIcon {
+                    icon: PREVIEW_ICON,
+                    onclick: handle_preview,
                 }
             }
 

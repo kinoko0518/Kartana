@@ -1,0 +1,61 @@
+warning: unused import: `CommandToken`
+ --> crates\aozora_parser\src\parser.rs:3:43
+  |
+3 | use crate::tokenizer::{self, AozoraToken, CommandToken, Span, TextToken};
+  |                                           ^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `DecoratedText`
+ --> crates\aozora_parser\src\linter.rs:7:21
+  |
+7 | use crate::parser::{DecoratedText, ParsedItem};
+  |                     ^^^^^^^^^^^^^
+
+warning: unused import: `Midashi`
+ --> crates\aozora_parser\src\xhtml_generator.rs:4:28
+  |
+4 |     Command, CommandBegin, Midashi, MidashiSize, MidashiType, SingleCommand,
+  |                            ^^^^^^^
+
+warning: constant `ZERO_TO_NINE` is never used
+ --> crates\aozora_parser\src\tokenizer\command.rs:5:7
+  |
+5 | const ZERO_TO_NINE: [char; 10] = ['・・, '・・, '・・, '・・, '・・, '・・, '・・, '・・, '・・, '・・];
+  |       ^^^^^^^^^^^^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: field `css` is never read
+  --> crates\aozora_parser\src\xhtml_generator.rs:16:5
+   |
+15 | pub struct XhtmlGenerator {
+   |            -------------- field in this struct
+16 |     css: String,
+   |     ^^^
+
+warning: `aozora_parser` (lib) generated 5 warnings (run `cargo fix --lib -p aozora_parser` to apply 3 suggestions)
+    Checking kartana v0.1.0 (C:\Projects\OwnProjects\Kartana)
+warning: unused import: `Path`
+ --> src\top_page\works.rs:6:12
+  |
+6 |     path::{Path, PathBuf},
+  |            ^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused `Result` that must be used
+  --> src\top_page\works.rs:43:9
+   |
+43 |         writeln!(file, "{}", &toml::to_string(self).unwrap());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+   = note: `#[warn(unused_must_use)]` (part of `#[warn(unused)]`) on by default
+help: use `let _ = ...` to ignore the resulting value
+   |
+43 |         let _ = writeln!(file, "{}", &toml::to_string(self).unwrap());
+   |         +++++++
+
+warning: `kartana` (bin "kartana") generated 2 warnings (run `cargo fix --bin "kartana"` to apply 1 suggestion)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.23s

@@ -35,12 +35,16 @@ pub fn Reader(series_title: String, chapter_title: String) -> Element {
                         // We inject the CSS content inline to avoid path resolution issues in srcdoc iframe
                         // This assumes the assets directory is in the current working directory
                         // "include_str" is not used as requested, using runtime read.
+                        let variables_css_content = fs::read_to_string("assets/css/variables.css")
+                            .unwrap_or_else(|_| "/* Failed to load variables.css */".to_string());
+
                         let reader_css_content = fs::read_to_string("assets/css/reader.css")
                             .unwrap_or_else(|_| "/* Failed to load reader.css */".to_string());
                         
+                        let variables_style_tag = format!("<style>{}</style>", variables_css_content);
                         let custom_style_tag = format!("<style>{}</style>", reader_css_content);
                         
-                        let replacement = format!("{}{}", default_style_tag, custom_style_tag);
+                        let replacement = format!("{}{}{}", default_style_tag, variables_style_tag, custom_style_tag);
 
                         // Replace the external link with inline style + link to reader.css
                         let final_xhtml = output.xhtml.replace(
